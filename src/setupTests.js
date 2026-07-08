@@ -1,2 +1,4 @@
-// jest-dom matchers are only available with globals: true
-// Since we use explicit imports in tests, we can skip this setup
+import { expect } from 'vitest'
+import * as matchers from '@testing-library/jest-dom/matchers'
+
+expect.extend(matchers)
