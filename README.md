@@ -24,4 +24,4 @@ npm run dev
 
 ## Status
 
-Early scaffold. See `docs/superpowers/plans/2026-07-08-two-wheel-spinner.md` for the implementation plan.
+Implementation complete. See `docs/superpowers/plans/2026-07-08-two-wheel-spinner.md` for the implementation plan.
