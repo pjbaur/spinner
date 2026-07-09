@@ -29,6 +29,8 @@ describe('Wheel spin', () => {
     expect(screen.getByTestId('winner')).toHaveTextContent('')
 
     fireEvent.click(svg)
+    // propertyName is ignored by the handler (jsdom has no TransitionEvent
+    // to carry it) -- kept here since it documents intent for a reader.
     fireEvent.transitionEnd(svg, { propertyName: 'transform' })
 
     expect(screen.getByTestId('winner')).toHaveTextContent('Winner: Pizza')
