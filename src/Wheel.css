@@ -35,3 +35,24 @@
   border-right: 15px solid transparent;
   border-top: 25px solid #333;
 }
+
+.wheel-hint {
+  color: #b00;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.wheel-winner {
+  min-height: 1.2rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.wheel-editor {
+  width: 260px;
+  height: 100px;
+  font-family: sans-serif;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  resize: vertical;
+}

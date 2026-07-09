@@ -52,3 +52,36 @@ describe('Wheel spin', () => {
     randomSpy.mockRestore()
   })
 })
+
+describe('Wheel item editor', () => {
+  it('shows current items in the textarea, one per line', () => {
+    render(<Wheel storageKey="wheel.editor-test-1" defaultItems={['Pizza', 'Tacos']} />)
+    const textarea = screen.getByLabelText('wheel items')
+    expect(textarea).toHaveValue('Pizza\nTacos')
+  })
+
+  it('re-parses and persists items on blur', () => {
+    render(<Wheel storageKey="wheel.editor-test-2" defaultItems={['Pizza']} />)
+    const textarea = screen.getByLabelText('wheel items')
+
+    fireEvent.change(textarea, { target: { value: 'Burgers\nFries\n' } })
+    fireEvent.blur(textarea)
+
+    expect(JSON.parse(localStorage.getItem('wheel.editor-test-2'))).toEqual(['Burgers', 'Fries'])
+    const svg = screen.getByTestId('wheel-svg')
+    expect(svg.querySelectorAll('path')).toHaveLength(2)
+  })
+
+  it('disables spinning and shows a hint when the list is empty', () => {
+    render(<Wheel storageKey="wheel.editor-test-3" defaultItems={['Pizza']} />)
+    const textarea = screen.getByLabelText('wheel items')
+
+    fireEvent.change(textarea, { target: { value: '' } })
+    fireEvent.blur(textarea)
+
+    expect(screen.getByTestId('empty-hint')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByTestId('wheel-svg'))
+    expect(screen.getByTestId('winner')).toHaveTextContent('')
+  })
+})

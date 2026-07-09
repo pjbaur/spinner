@@ -6,6 +6,7 @@ import {
   describeSlicePath,
   pickRandomIndex,
   computeTargetRotation,
+  parseItemsFromText,
 } from './wheelMath.js'
 import './Wheel.css'
 
@@ -14,7 +15,8 @@ const RADIUS = 150
 const LABEL_RADIUS = 95
 
 export default function Wheel({ storageKey, defaultItems }) {
-  const [items] = useWheelItems(storageKey, defaultItems)
+  const [items, setItems] = useWheelItems(storageKey, defaultItems)
+  const [draftText, setDraftText] = useState(items.join('\n'))
   const angles = buildSliceAngles(items.length || 1)
 
   const [rotation, setRotation] = useState(0)
@@ -31,9 +33,14 @@ export default function Wheel({ storageKey, defaultItems }) {
     setRotation((current) => computeTargetRotation(current, winningIndex, items.length))
   }
 
-  function handleTransitionEnd() {
+  function handleTransitionEnd(e) {
+    if (e.propertyName && e.propertyName !== 'transform') return
     setSpinning(false)
     setWinner(items[pendingWinnerIndex.current])
+  }
+
+  function handleEditorBlur() {
+    setItems(parseItemsFromText(draftText))
   }
 
   return (
@@ -75,9 +82,21 @@ export default function Wheel({ storageKey, defaultItems }) {
         </svg>
         <div className="wheel-pointer" />
       </div>
+      {items.length === 0 && (
+        <p data-testid="empty-hint" className="wheel-hint">
+          Add at least 1 item to spin.
+        </p>
+      )}
       <p data-testid="winner" className="wheel-winner">
         {winner ? `Winner: ${winner}` : ''}
       </p>
+      <textarea
+        aria-label="wheel items"
+        className="wheel-editor"
+        value={draftText}
+        onChange={(e) => setDraftText(e.target.value)}
+        onBlur={handleEditorBlur}
+      />
     </div>
   )
 }
