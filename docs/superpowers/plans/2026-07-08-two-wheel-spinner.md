@@ -37,7 +37,7 @@
 **Interfaces:**
 - Produces: `App` default-exported React component from `src/App.jsx`, rendering an `<h1>Spinner</h1>` (extended by Task 7).
 
-- [ ] **Step 1: Create `package.json`**
+- [x] **Step 1: Create `package.json`**
 
 ```json
 {
@@ -66,12 +66,12 @@
 }
 ```
 
-- [ ] **Step 2: Install dependencies**
+- [x] **Step 2: Install dependencies**
 
 Run: `npm install`
 Expected: installs without error, creates `node_modules/` and `package-lock.json`.
 
-- [ ] **Step 3: Create `vite.config.js`**
+- [x] **Step 3: Create `vite.config.js`**
 
 ```js
 import { defineConfig } from 'vite'
@@ -86,13 +86,13 @@ export default defineConfig({
 })
 ```
 
-- [ ] **Step 4: Create `src/setupTests.js`**
+- [x] **Step 4: Create `src/setupTests.js`**
 
 ```js
 import '@testing-library/jest-dom'
 ```
 
-- [ ] **Step 5: Create `index.html`**
+- [x] **Step 5: Create `index.html`**
 
 ```html
 <!doctype html>
@@ -109,7 +109,7 @@ import '@testing-library/jest-dom'
 </html>
 ```
 
-- [ ] **Step 6: Create `src/main.jsx`**
+- [x] **Step 6: Create `src/main.jsx`**
 
 ```jsx
 import React from 'react'
@@ -123,7 +123,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 )
 ```
 
-- [ ] **Step 7: Create `src/App.jsx` (minimal placeholder, extended in Task 7)**
+- [x] **Step 7: Create `src/App.jsx` (minimal placeholder, extended in Task 7)**
 
 ```jsx
 export default function App() {
@@ -135,7 +135,7 @@ export default function App() {
 }
 ```
 
-- [ ] **Step 8: Write the failing test `src/App.test.jsx`**
+- [x] **Step 8: Write the failing test `src/App.test.jsx`**
 
 ```jsx
 import { describe, it, expect } from 'vitest'
@@ -150,12 +150,12 @@ describe('App', () => {
 })
 ```
 
-- [ ] **Step 9: Run test to verify it fails (before App.jsx existed in your working copy, or to confirm setup wiring)**
+- [x] **Step 9: Run test to verify it fails (before App.jsx existed in your working copy, or to confirm setup wiring)**
 
 Run: `npm test`
 Expected: PASS (App.jsx and test were created together in this task — running now confirms the scaffold and test runner both work end-to-end). If it fails, fix the scaffold before proceeding.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add package.json vite.config.js index.html src/main.jsx src/App.jsx src/setupTests.js src/App.test.jsx
@@ -181,7 +181,7 @@ git commit -m "chore: scaffold Vite + React + Vitest project"
   - `pickRandomIndex(itemCount: number, randomFn?: () => number): number`
   - `computeTargetRotation(currentRotation: number, winningIndex: number, itemCount: number, extraSpins?: number, jitterFn?: () => number): number`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // src/wheelMath.test.js
@@ -268,12 +268,12 @@ describe('computeTargetRotation', () => {
 })
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test`
 Expected: FAIL with "Failed to resolve import './wheelMath.js'" or similar (module doesn't exist yet).
 
-- [ ] **Step 3: Write the implementation `src/wheelMath.js`**
+- [x] **Step 3: Write the implementation `src/wheelMath.js`**
 
 ```js
 export const PALETTE = [
@@ -344,12 +344,12 @@ export function computeTargetRotation(
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test`
 Expected: PASS (all `wheelMath` tests green).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/wheelMath.js src/wheelMath.test.js
@@ -370,7 +370,7 @@ git commit -m "feat: add pure wheel math functions"
   - `loadItems(key: string, defaultItems: string[]): string[]`
   - `useWheelItems(key: string, defaultItems: string[]): [string[], (next: string[]) => void]`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // src/useWheelItems.test.js
@@ -420,12 +420,12 @@ describe('useWheelItems', () => {
 })
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test`
 Expected: FAIL with "Failed to resolve import './useWheelItems.js'".
 
-- [ ] **Step 3: Write the implementation `src/useWheelItems.js`**
+- [x] **Step 3: Write the implementation `src/useWheelItems.js`**
 
 ```js
 import { useState } from 'react'
@@ -454,12 +454,12 @@ export function useWheelItems(key, defaultItems) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test`
 Expected: PASS (all `useWheelItems` tests green).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/useWheelItems.js src/useWheelItems.test.js
@@ -479,7 +479,7 @@ git commit -m "feat: add localStorage-backed wheel items hook"
 - Consumes: `getSliceColor`, `buildSliceAngles`, `describeSlicePath` from `src/wheelMath.js`; `useWheelItems` from `src/useWheelItems.js`.
 - Produces (consumed by Task 5, 6, 7): `Wheel` default-exported component with props `{ storageKey: string, defaultItems: string[] }`. Renders one `<path>` per item inside an `svg[data-testid="wheel-svg"]`, and one `<text>` per item with the item's label.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```jsx
 // src/Wheel.test.jsx
@@ -504,12 +504,12 @@ describe('Wheel rendering', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test`
 Expected: FAIL with "Failed to resolve import './Wheel.jsx'".
 
-- [ ] **Step 3: Write the implementation `src/Wheel.jsx`**
+- [x] **Step 3: Write the implementation `src/Wheel.jsx`**
 
 ```jsx
 import { useWheelItems } from './useWheelItems.js'
@@ -561,7 +561,7 @@ export default function Wheel({ storageKey, defaultItems }) {
 }
 ```
 
-- [ ] **Step 4: Create `src/Wheel.css`**
+- [x] **Step 4: Create `src/Wheel.css`**
 
 ```css
 .wheel-panel {
@@ -603,12 +603,12 @@ export default function Wheel({ storageKey, defaultItems }) {
 }
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `npm test`
 Expected: PASS (`Wheel rendering` test green).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/Wheel.jsx src/Wheel.css src/Wheel.test.jsx
@@ -627,7 +627,7 @@ git commit -m "feat: render wheel as SVG pie slices"
 - Consumes: `pickRandomIndex`, `computeTargetRotation` from `src/wheelMath.js`.
 - Produces (consumed by Task 6, 7): clicking `svg[data-testid="wheel-svg"]` triggers a spin; wheel shows winner text `Winner: <item>` inside `[data-testid="winner"]` after a simulated `transitionend`; a second click while spinning does not start a second spin.
 
-- [ ] **Step 1: Write the failing tests (append to `src/Wheel.test.jsx`)**
+- [x] **Step 1: Write the failing tests (append to `src/Wheel.test.jsx`)**
 
 ```jsx
 // add to src/Wheel.test.jsx, alongside existing imports/tests
@@ -667,12 +667,12 @@ describe('Wheel spin', () => {
 })
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test`
 Expected: FAIL — `winner` testid not found (spin behavior not implemented yet).
 
-- [ ] **Step 3: Update `src/Wheel.jsx` to add spin state and handlers**
+- [x] **Step 3: Update `src/Wheel.jsx` to add spin state and handlers**
 
 ```jsx
 import { useRef, useState } from 'react'
@@ -761,12 +761,12 @@ export default function Wheel({ storageKey, defaultItems }) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test`
 Expected: PASS (all `Wheel spin` and `Wheel rendering` tests green).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/Wheel.jsx src/Wheel.test.jsx
@@ -786,7 +786,7 @@ git commit -m "feat: wire up wheel spin interaction and winner display"
 - Consumes: `parseItemsFromText` from `src/wheelMath.js`; `setItems` returned by `useWheelItems`.
 - Produces (consumed by Task 7): `Wheel` renders a `textarea` with `aria-label="wheel items"` reflecting the current items (one per line); editing and blurring it re-parses and persists the list. Spin is disabled and a hint (`data-testid="empty-hint"`) is shown when the item list is empty.
 
-- [ ] **Step 1: Write the failing tests (append to `src/Wheel.test.jsx`)**
+- [x] **Step 1: Write the failing tests (append to `src/Wheel.test.jsx`)**
 
 ```jsx
 // add to src/Wheel.test.jsx
@@ -825,12 +825,12 @@ describe('Wheel item editor', () => {
 })
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test`
 Expected: FAIL — `getByLabelText('wheel items')` not found.
 
-- [ ] **Step 3: Update `src/Wheel.jsx` to add the editor and empty-state hint**
+- [x] **Step 3: Update `src/Wheel.jsx` to add the editor and empty-state hint**
 
 ```jsx
 import { useRef, useState } from 'react'
@@ -937,7 +937,7 @@ export default function Wheel({ storageKey, defaultItems }) {
 }
 ```
 
-- [ ] **Step 4: Add editor/hint styles to `src/Wheel.css`**
+- [x] **Step 4: Add editor/hint styles to `src/Wheel.css`**
 
 ```css
 .wheel-hint {
@@ -962,12 +962,12 @@ export default function Wheel({ storageKey, defaultItems }) {
 }
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test`
 Expected: PASS (all `Wheel item editor` tests green, plus all prior `Wheel` tests still green).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/Wheel.jsx src/Wheel.css src/Wheel.test.jsx
@@ -988,7 +988,7 @@ git commit -m "feat: add wheel item textarea editor and empty-list hint"
 - Consumes: `Wheel` component from `src/Wheel.jsx` with props `{ storageKey, defaultItems }`.
 - Produces: rendered page with two independently-editable wheels, storage keys `spinner.wheelA` and `spinner.wheelB`.
 
-- [ ] **Step 1: Write the failing test (extend `src/App.test.jsx`)**
+- [x] **Step 1: Write the failing test (extend `src/App.test.jsx`)**
 
 ```jsx
 // src/App.test.jsx
@@ -1020,12 +1020,12 @@ describe('App', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test`
 Expected: FAIL — only one `wheel items` element found (App doesn't render any `Wheel` yet).
 
-- [ ] **Step 3: Update `src/App.jsx`**
+- [x] **Step 3: Update `src/App.jsx`**
 
 ```jsx
 import Wheel from './Wheel.jsx'
@@ -1046,7 +1046,7 @@ export default function App() {
 }
 ```
 
-- [ ] **Step 4: Create `src/App.css`**
+- [x] **Step 4: Create `src/App.css`**
 
 ```css
 .app {
@@ -1063,7 +1063,7 @@ export default function App() {
 }
 ```
 
-- [ ] **Step 5: Update `src/main.jsx` to import `App.css`**
+- [x] **Step 5: Update `src/main.jsx` to import `App.css`**
 
 ```jsx
 import React from 'react'
@@ -1078,12 +1078,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 )
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `npm test`
 Expected: PASS (all tests across the project green).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/App.jsx src/App.css src/App.test.jsx src/main.jsx
@@ -1100,7 +1100,7 @@ git commit -m "feat: compose two independent wheels in App"
 **Interfaces:**
 - None (documentation + manual QA only; no new production code).
 
-- [ ] **Step 1: Create `README.md`**
+- [x] **Step 1: Create `README.md`**
 
 ```markdown
 # Spinner
@@ -1123,7 +1123,7 @@ npm test
 npm run build
 ```
 
-- [ ] **Step 2: Run the full test suite one more time**
+- [x] **Step 2: Run the full test suite one more time**
 
 Run: `npm test`
 Expected: PASS (every test file green).
@@ -1138,7 +1138,7 @@ Run: `npm run dev`, open the printed URL, then check:
 - Reloading the page preserves both wheels' edited item lists.
 - Clearing a wheel's textarea shows the "Add at least 1 item to spin" hint and clicking that wheel does nothing.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add README.md
