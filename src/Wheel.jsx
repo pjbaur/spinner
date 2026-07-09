@@ -1,5 +1,12 @@
+import { useRef, useState } from 'react'
 import { useWheelItems } from './useWheelItems.js'
-import { getSliceColor, buildSliceAngles, describeSlicePath } from './wheelMath.js'
+import {
+  getSliceColor,
+  buildSliceAngles,
+  describeSlicePath,
+  pickRandomIndex,
+  computeTargetRotation,
+} from './wheelMath.js'
 import './Wheel.css'
 
 const CENTER = 150
@@ -10,10 +17,36 @@ export default function Wheel({ storageKey, defaultItems }) {
   const [items] = useWheelItems(storageKey, defaultItems)
   const angles = buildSliceAngles(items.length || 1)
 
+  const [rotation, setRotation] = useState(0)
+  const [spinning, setSpinning] = useState(false)
+  const [winner, setWinner] = useState(null)
+  const pendingWinnerIndex = useRef(null)
+
+  function handleSpin() {
+    if (spinning || items.length === 0) return
+    const winningIndex = pickRandomIndex(items.length)
+    pendingWinnerIndex.current = winningIndex
+    setWinner(null)
+    setSpinning(true)
+    setRotation((current) => computeTargetRotation(current, winningIndex, items.length))
+  }
+
+  function handleTransitionEnd() {
+    setSpinning(false)
+    setWinner(items[pendingWinnerIndex.current])
+  }
+
   return (
     <div className="wheel-panel">
       <div className="wheel-wrapper">
-        <svg data-testid="wheel-svg" viewBox="0 0 300 300" className="wheel-svg">
+        <svg
+          data-testid="wheel-svg"
+          viewBox="0 0 300 300"
+          className="wheel-svg"
+          style={{ transform: `rotate(${rotation}deg)` }}
+          onClick={handleSpin}
+          onTransitionEnd={handleTransitionEnd}
+        >
           {items.map((item, i) => (
             <path
               key={i}
@@ -42,6 +75,9 @@ export default function Wheel({ storageKey, defaultItems }) {
         </svg>
         <div className="wheel-pointer" />
       </div>
+      <p data-testid="winner" className="wheel-winner">
+        {winner ? `Winner: ${winner}` : ''}
+      </p>
     </div>
   )
 }
