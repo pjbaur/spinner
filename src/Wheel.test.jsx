@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import Wheel from './Wheel.jsx'
 
@@ -51,8 +52,9 @@ describe('Wheel button semantics', () => {
     expect(button).toBeDisabled()
   })
 
-  it('starts a spin when the button is focused and activated via keyboard', () => {
-    vi.spyOn(Math, 'random').mockReturnValue(0)
+  it('starts a spin when the button is focused and activated via keyboard (Enter)', async () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
+    const user = userEvent.setup()
 
     render(
       <Wheel
@@ -66,19 +68,22 @@ describe('Wheel button semantics', () => {
     button.focus()
     expect(button).toHaveFocus()
 
-    // jsdom does not implement the browser's native "Enter/Space on a
-    // focused button dispatches click" behavior, so the keydown is fired
-    // for intent, and the click stands in for the resulting native
-    // activation on a real, focused <button>.
-    fireEvent.keyDown(button, { key: 'Enter', code: 'Enter' })
-    fireEvent.click(button)
+    // user-event's keyboard module replays the browser's native default
+    // action for Enter on a focused <button> (dispatching a real click),
+    // unlike fireEvent.keyDown which is inert for native button activation
+    // in jsdom. This only passes because the control is a genuine <button>
+    // -- swapping it for a non-native focusable element (e.g. a div with
+    // onClick and no keydown handling) makes this assertion fail.
+    await user.keyboard('{Enter}')
+
+    expect(button).toBeDisabled()
 
     const svg = screen.getByTestId('wheel-svg')
     fireEvent.transitionEnd(svg, { propertyName: 'transform' })
 
     expect(screen.getByTestId('winner')).toHaveTextContent('Winner: Pizza')
 
-    Math.random.mockRestore()
+    randomSpy.mockRestore()
   })
 })
 
