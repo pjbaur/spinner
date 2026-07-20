@@ -1,0 +1,10 @@
+dist/
+node_modules/
+package-lock.json
+.superpowers/
+# Prettier's markdown formatter corrupts escaped-backtick inline code spans in
+# docs/superpowers/plans/2026-07-20-review-fixes.md (drops required whitespace
+# around adjacent code spans when unwrapping soft-wrapped lines). Docs
+# formatting is out of this task's scope anyway (brief's reflow scope is
+# src/ only), so skip docs/ entirely rather than ship corrupted prose.
+docs/
