@@ -17,6 +17,15 @@ describe('Wheel rendering', () => {
     expect(screen.getByText('Tacos')).toBeInTheDocument()
     expect(screen.getByText('Sushi')).toBeInTheDocument()
   })
+
+  it('renders a single-item wheel as a full circle, not a degenerate wedge', () => {
+    render(<Wheel storageKey="wheel.single-item-test" defaultItems={['Pizza']} />)
+
+    const svg = screen.getByTestId('wheel-svg')
+    const paths = svg.querySelectorAll('path')
+    expect(paths).toHaveLength(1)
+    expect(paths[0].getAttribute('d').match(/A/g)).toHaveLength(2)
+  })
 })
 
 describe('Wheel spin', () => {

@@ -5,6 +5,7 @@ import {
   parseItemsFromText,
   buildSliceAngles,
   polarToCartesian,
+  describeSlicePath,
   pickRandomIndex,
   computeTargetRotation,
 } from './wheelMath.js'
@@ -54,6 +55,23 @@ describe('polarToCartesian', () => {
     const p = polarToCartesian(100, 100, 50, 90)
     expect(p.x).toBeCloseTo(150)
     expect(p.y).toBeCloseTo(100)
+  })
+})
+
+describe('describeSlicePath', () => {
+  it('draws a partial slice as a center wedge', () => {
+    const d = describeSlicePath(150, 150, 150, 0, 90)
+    expect(d).toBe('M 150 150 L 150 0 A 150 150 0 0 1 300 150 Z')
+  })
+
+  it('draws a full-turn slice as a full circle, not a degenerate wedge', () => {
+    const d = describeSlicePath(150, 150, 150, 0, 360)
+    const arcs = [...d.matchAll(/A [\d.]+ [\d.]+ \d+ \d+ \d+ (-?[\d.]+) (-?[\d.]+)/g)]
+    expect(arcs).toHaveLength(2)
+
+    const [x1, y1] = arcs[0].slice(1).map(Number)
+    const [x2, y2] = arcs[1].slice(1).map(Number)
+    expect(x1 !== x2 || y1 !== y2).toBe(true)
   })
 })
 
