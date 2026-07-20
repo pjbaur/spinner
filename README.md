@@ -1,6 +1,6 @@
 # Spinner
 
-Single-page React app with two independent, click-to-spin "wheel of fortune" style wheels. Each wheel has a user-editable, localStorage-persisted item list.
+Single-page React app with two independent "wheel of fortune" style wheels, spun by click or keyboard. Each wheel has a user-editable, localStorage-persisted item list.
 
 ## Stack
 
@@ -21,6 +21,9 @@ npm run dev
 - `npm run build` — production build
 - `npm run preview` — preview the production build locally
 - `npm test` — run the test suite
+- `npm run lint` — run ESLint
+- `npm run format` — format all files with Prettier
+- `npm run format:check` — check formatting without writing
 
 ## Status
 
