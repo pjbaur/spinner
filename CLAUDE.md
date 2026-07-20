@@ -10,4 +10,5 @@ Default label vocabulary (needs-triage, needs-info, ready-for-agent, ready-for-h
 
 ### Domain docs
 
-Single-context — `CONTEXT.md` + `docs/adr/` at repo root. See `docs/agents/domain.md`.
+Single-context layout — `CONTEXT.md` + `docs/adr/` at the repo root, created
+lazily by `/domain-modeling`; neither exists yet. See `docs/agents/domain.md`.

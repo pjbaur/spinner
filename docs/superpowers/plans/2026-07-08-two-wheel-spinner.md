@@ -26,6 +26,7 @@
 ### Task 1: Project scaffold
 
 **Files:**
+
 - Create: `package.json`
 - Create: `vite.config.js`
 - Create: `index.html`
@@ -35,6 +36,7 @@
 - Test: `src/App.test.jsx`
 
 **Interfaces:**
+
 - Produces: `App` default-exported React component from `src/App.jsx`, rendering an `<h1>Spinner</h1>` (extended by Task 7).
 
 - [x] **Step 1: Create `package.json`**
@@ -167,10 +169,12 @@ git commit -m "chore: scaffold Vite + React + Vitest project"
 ### Task 2: Wheel math — pure functions
 
 **Files:**
+
 - Create: `src/wheelMath.js`
 - Test: `src/wheelMath.test.js`
 
 **Interfaces:**
+
 - Produces (consumed by Task 4 and Task 5):
   - `PALETTE: string[]` — array of hex color strings.
   - `getSliceColor(index: number): string`
@@ -361,10 +365,12 @@ git commit -m "feat: add pure wheel math functions"
 ### Task 3: `useWheelItems` localStorage hook
 
 **Files:**
+
 - Create: `src/useWheelItems.js`
 - Test: `src/useWheelItems.test.js`
 
 **Interfaces:**
+
 - Consumes: none (browser `localStorage` global, available in jsdom test env).
 - Produces (consumed by Task 6):
   - `loadItems(key: string, defaultItems: string[]): string[]`
@@ -471,11 +477,13 @@ git commit -m "feat: add localStorage-backed wheel items hook"
 ### Task 4: Wheel SVG rendering
 
 **Files:**
+
 - Create: `src/Wheel.jsx`
 - Create: `src/Wheel.css`
 - Test: `src/Wheel.test.jsx`
 
 **Interfaces:**
+
 - Consumes: `getSliceColor`, `buildSliceAngles`, `describeSlicePath` from `src/wheelMath.js`; `useWheelItems` from `src/useWheelItems.js`.
 - Produces (consumed by Task 5, 6, 7): `Wheel` default-exported component with props `{ storageKey: string, defaultItems: string[] }`. Renders one `<path>` per item inside an `svg[data-testid="wheel-svg"]`, and one `<text>` per item with the item's label.
 
@@ -493,7 +501,12 @@ beforeEach(() => {
 
 describe('Wheel rendering', () => {
   it('renders one slice path and label per item', () => {
-    render(<Wheel storageKey="wheel.render-test" defaultItems={['Pizza', 'Tacos', 'Sushi']} />)
+    render(
+      <Wheel
+        storageKey="wheel.render-test"
+        defaultItems={['Pizza', 'Tacos', 'Sushi']}
+      />,
+    )
 
     const svg = screen.getByTestId('wheel-svg')
     expect(svg.querySelectorAll('path')).toHaveLength(3)
@@ -513,7 +526,11 @@ Expected: FAIL with "Failed to resolve import './Wheel.jsx'".
 
 ```jsx
 import { useWheelItems } from './useWheelItems.js'
-import { getSliceColor, buildSliceAngles, describeSlicePath } from './wheelMath.js'
+import {
+  getSliceColor,
+  buildSliceAngles,
+  describeSlicePath,
+} from './wheelMath.js'
 import './Wheel.css'
 
 const CENTER = 150
@@ -527,11 +544,21 @@ export default function Wheel({ storageKey, defaultItems }) {
   return (
     <div className="wheel-panel">
       <div className="wheel-wrapper">
-        <svg data-testid="wheel-svg" viewBox="0 0 300 300" className="wheel-svg">
+        <svg
+          data-testid="wheel-svg"
+          viewBox="0 0 300 300"
+          className="wheel-svg"
+        >
           {items.map((item, i) => (
             <path
               key={i}
-              d={describeSlicePath(CENTER, CENTER, RADIUS, angles[i].start, angles[i].end)}
+              d={describeSlicePath(
+                CENTER,
+                CENTER,
+                RADIUS,
+                angles[i].start,
+                angles[i].end,
+              )}
               fill={getSliceColor(i)}
             />
           ))}
@@ -620,10 +647,12 @@ git commit -m "feat: render wheel as SVG pie slices"
 ### Task 5: Spin interaction
 
 **Files:**
+
 - Modify: `src/Wheel.jsx`
 - Modify: `src/Wheel.test.jsx`
 
 **Interfaces:**
+
 - Consumes: `pickRandomIndex`, `computeTargetRotation` from `src/wheelMath.js`.
 - Produces (consumed by Task 6, 7): clicking `svg[data-testid="wheel-svg"]` triggers a spin; wheel shows winner text `Winner: <item>` inside `[data-testid="winner"]` after a simulated `transitionend`; a second click while spinning does not start a second spin.
 
@@ -638,7 +667,12 @@ describe('Wheel spin', () => {
   it('shows the winner after the spin transition ends', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0)
 
-    render(<Wheel storageKey="wheel.spin-test-1" defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']} />)
+    render(
+      <Wheel
+        storageKey="wheel.spin-test-1"
+        defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']}
+      />,
+    )
     const svg = screen.getByTestId('wheel-svg')
 
     expect(screen.getByTestId('winner')).toHaveTextContent('')
@@ -654,7 +688,12 @@ describe('Wheel spin', () => {
   it('ignores clicks while already spinning', () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
 
-    render(<Wheel storageKey="wheel.spin-test-2" defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']} />)
+    render(
+      <Wheel
+        storageKey="wheel.spin-test-2"
+        defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']}
+      />,
+    )
     const svg = screen.getByTestId('wheel-svg')
 
     fireEvent.click(svg)
@@ -705,7 +744,9 @@ export default function Wheel({ storageKey, defaultItems }) {
     pendingWinnerIndex.current = winningIndex
     setWinner(null)
     setSpinning(true)
-    setRotation((current) => computeTargetRotation(current, winningIndex, items.length))
+    setRotation((current) =>
+      computeTargetRotation(current, winningIndex, items.length),
+    )
   }
 
   function handleTransitionEnd(e) {
@@ -728,7 +769,13 @@ export default function Wheel({ storageKey, defaultItems }) {
           {items.map((item, i) => (
             <path
               key={i}
-              d={describeSlicePath(CENTER, CENTER, RADIUS, angles[i].start, angles[i].end)}
+              d={describeSlicePath(
+                CENTER,
+                CENTER,
+                RADIUS,
+                angles[i].start,
+                angles[i].end,
+              )}
               fill={getSliceColor(i)}
             />
           ))}
@@ -778,11 +825,13 @@ git commit -m "feat: wire up wheel spin interaction and winner display"
 ### Task 6: Item editor textarea + empty-list handling
 
 **Files:**
+
 - Modify: `src/Wheel.jsx`
 - Modify: `src/Wheel.css`
 - Modify: `src/Wheel.test.jsx`
 
 **Interfaces:**
+
 - Consumes: `parseItemsFromText` from `src/wheelMath.js`; `setItems` returned by `useWheelItems`.
 - Produces (consumed by Task 7): `Wheel` renders a `textarea` with `aria-label="wheel items"` reflecting the current items (one per line); editing and blurring it re-parses and persists the list. Spin is disabled and a hint (`data-testid="empty-hint"`) is shown when the item list is empty.
 
@@ -793,7 +842,12 @@ git commit -m "feat: wire up wheel spin interaction and winner display"
 
 describe('Wheel item editor', () => {
   it('shows current items in the textarea, one per line', () => {
-    render(<Wheel storageKey="wheel.editor-test-1" defaultItems={['Pizza', 'Tacos']} />)
+    render(
+      <Wheel
+        storageKey="wheel.editor-test-1"
+        defaultItems={['Pizza', 'Tacos']}
+      />,
+    )
     const textarea = screen.getByLabelText('wheel items')
     expect(textarea).toHaveValue('Pizza\nTacos')
   })
@@ -805,7 +859,10 @@ describe('Wheel item editor', () => {
     fireEvent.change(textarea, { target: { value: 'Burgers\nFries\n' } })
     fireEvent.blur(textarea)
 
-    expect(JSON.parse(localStorage.getItem('wheel.editor-test-2'))).toEqual(['Burgers', 'Fries'])
+    expect(JSON.parse(localStorage.getItem('wheel.editor-test-2'))).toEqual([
+      'Burgers',
+      'Fries',
+    ])
     const svg = screen.getByTestId('wheel-svg')
     expect(svg.querySelectorAll('path')).toHaveLength(2)
   })
@@ -865,7 +922,9 @@ export default function Wheel({ storageKey, defaultItems }) {
     pendingWinnerIndex.current = winningIndex
     setWinner(null)
     setSpinning(true)
-    setRotation((current) => computeTargetRotation(current, winningIndex, items.length))
+    setRotation((current) =>
+      computeTargetRotation(current, winningIndex, items.length),
+    )
   }
 
   function handleTransitionEnd(e) {
@@ -892,7 +951,13 @@ export default function Wheel({ storageKey, defaultItems }) {
           {items.map((item, i) => (
             <path
               key={i}
-              d={describeSlicePath(CENTER, CENTER, RADIUS, angles[i].start, angles[i].end)}
+              d={describeSlicePath(
+                CENTER,
+                CENTER,
+                RADIUS,
+                angles[i].start,
+                angles[i].end,
+              )}
               fill={getSliceColor(i)}
             />
           ))}
@@ -979,12 +1044,14 @@ git commit -m "feat: add wheel item textarea editor and empty-list hint"
 ### Task 7: Compose two independent wheels in `App`
 
 **Files:**
+
 - Modify: `src/App.jsx`
 - Modify: `src/App.test.jsx`
 - Create: `src/App.css`
 - Modify: `src/main.jsx`
 
 **Interfaces:**
+
 - Consumes: `Wheel` component from `src/Wheel.jsx` with props `{ storageKey, defaultItems }`.
 - Produces: rendered page with two independently-editable wheels, storage keys `spinner.wheelA` and `spinner.wheelB`.
 
@@ -1014,7 +1081,9 @@ describe('App', () => {
     fireEvent.change(editors[0], { target: { value: 'Only Wheel A Item' } })
     fireEvent.blur(editors[0])
 
-    expect(JSON.parse(localStorage.getItem('spinner.wheelA'))).toEqual(['Only Wheel A Item'])
+    expect(JSON.parse(localStorage.getItem('spinner.wheelA'))).toEqual([
+      'Only Wheel A Item',
+    ])
     expect(localStorage.getItem('spinner.wheelB')).toBeNull()
   })
 })
@@ -1095,9 +1164,11 @@ git commit -m "feat: compose two independent wheels in App"
 ### Task 8: Manual verification and README
 
 **Files:**
+
 - Create: `README.md`
 
 **Interfaces:**
+
 - None (documentation + manual QA only; no new production code).
 
 - [x] **Step 1: Create `README.md`**
@@ -1131,6 +1202,7 @@ Expected: PASS (every test file green).
 - [ ] **Step 3: Manually verify in a browser**
 
 Run: `npm run dev`, open the printed URL, then check:
+
 - Two wheels render side by side (or stacked if the window is narrow).
 - Editing a wheel's textarea and clicking outside it updates that wheel's slices, and NOT the other wheel's.
 - Clicking a wheel spins it (visible deceleration over a few seconds) and shows `Winner: <item>` after it stops.

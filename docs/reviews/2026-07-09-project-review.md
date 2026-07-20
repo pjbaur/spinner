@@ -47,7 +47,7 @@ Nothing prevents blurring the textarea while a spin is in flight. `handleEditorB
 `items` immediately, which (a) re-renders the slices mid-animation so the wheel visually
 changes while rotating toward an angle computed for the old layout, and (b) makes
 `items[pendingWinnerIndex.current]` in `handleTransitionEnd` (src/Wheel.jsx:39) index into the
-*new* array — yielding either the wrong item or `undefined` (silently displayed as no winner).
+_new_ array — yielding either the wrong item or `undefined` (silently displayed as no winner).
 Either block edits while `spinning`, or resolve the winner from a snapshot of the items taken
 at spin time.
 

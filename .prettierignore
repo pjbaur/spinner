@@ -1,0 +1,9 @@
+dist/
+node_modules/
+package-lock.json
+.superpowers/
+# Prettier's markdown formatter corrupts escaped-backtick inline code spans in
+# this file (drops required whitespace around adjacent code spans when
+# unwrapping soft-wrapped lines). See git history / task report for the
+# specific corrupted line.
+docs/superpowers/plans/2026-07-20-review-fixes.md

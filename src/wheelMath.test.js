@@ -2,18 +2,63 @@ import { describe, it, expect } from 'vitest'
 import {
   PALETTE,
   getSliceColor,
+  getSliceTextColor,
   parseItemsFromText,
   buildSliceAngles,
   polarToCartesian,
+  describeSlicePath,
   pickRandomIndex,
   computeTargetRotation,
 } from './wheelMath.js'
 
 describe('getSliceColor', () => {
   it('cycles through the palette', () => {
-    expect(getSliceColor(0)).toBe(PALETTE[0])
-    expect(getSliceColor(PALETTE.length)).toBe(PALETTE[0])
-    expect(getSliceColor(PALETTE.length + 1)).toBe(PALETTE[1])
+    expect(getSliceColor(0)).toBe(PALETTE[0].fill)
+    expect(getSliceColor(PALETTE.length)).toBe(PALETTE[0].fill)
+    expect(getSliceColor(PALETTE.length + 1)).toBe(PALETTE[1].fill)
+  })
+})
+
+describe('getSliceTextColor', () => {
+  it('cycles through the palette text colors in lockstep with getSliceColor', () => {
+    expect(getSliceTextColor(0)).toBe(PALETTE[0].text)
+    expect(getSliceTextColor(PALETTE.length)).toBe(PALETTE[0].text)
+    expect(getSliceTextColor(PALETTE.length + 1)).toBe(PALETTE[1].text)
+  })
+})
+
+describe('palette label contrast', () => {
+  // WCAG 2.x relative luminance + contrast ratio, implemented independently
+  // of any app code so this test can't be fooled by a shared bug.
+  function channelToLinear(channel) {
+    const c = channel / 255
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+  }
+
+  function relativeLuminance(hex) {
+    const value = hex.replace('#', '')
+    const r = parseInt(value.slice(0, 2), 16)
+    const g = parseInt(value.slice(2, 4), 16)
+    const b = parseInt(value.slice(4, 6), 16)
+    return (
+      0.2126 * channelToLinear(r) +
+      0.7152 * channelToLinear(g) +
+      0.0722 * channelToLinear(b)
+    )
+  }
+
+  function contrastRatio(hexA, hexB) {
+    const lA = relativeLuminance(hexA)
+    const lB = relativeLuminance(hexB)
+    const lighter = Math.max(lA, lB)
+    const darker = Math.min(lA, lB)
+    return (lighter + 0.05) / (darker + 0.05)
+  }
+
+  it('gives every fill/text pair at least a 4.5:1 contrast ratio', () => {
+    PALETTE.forEach(({ fill, text }) => {
+      expect(contrastRatio(fill, text)).toBeGreaterThanOrEqual(4.5)
+    })
   })
 })
 
@@ -54,6 +99,25 @@ describe('polarToCartesian', () => {
     const p = polarToCartesian(100, 100, 50, 90)
     expect(p.x).toBeCloseTo(150)
     expect(p.y).toBeCloseTo(100)
+  })
+})
+
+describe('describeSlicePath', () => {
+  it('draws a partial slice as a center wedge', () => {
+    const d = describeSlicePath(150, 150, 150, 0, 90)
+    expect(d).toBe('M 150 150 L 150 0 A 150 150 0 0 1 300 150 Z')
+  })
+
+  it('draws a full-turn slice as a full circle, not a degenerate wedge', () => {
+    const d = describeSlicePath(150, 150, 150, 0, 360)
+    const arcs = [
+      ...d.matchAll(/A [\d.]+ [\d.]+ \d+ \d+ \d+ (-?[\d.]+) (-?[\d.]+)/g),
+    ]
+    expect(arcs).toHaveLength(2)
+
+    const [x1, y1] = arcs[0].slice(1).map(Number)
+    const [x2, y2] = arcs[1].slice(1).map(Number)
+    expect(x1 !== x2 || y1 !== y2).toBe(true)
   })
 })
 
