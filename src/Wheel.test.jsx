@@ -11,7 +11,11 @@ beforeEach(() => {
 describe('Wheel rendering', () => {
   it('renders one slice path and label per item', () => {
     render(
-      <Wheel storageKey="wheel.render-test" defaultItems={['Pizza', 'Tacos', 'Sushi']} name="Test Wheel" />,
+      <Wheel
+        storageKey="wheel.render-test"
+        defaultItems={['Pizza', 'Tacos', 'Sushi']}
+        name="Test Wheel"
+      />,
     )
 
     const svg = screen.getByTestId('wheel-svg')
@@ -22,7 +26,13 @@ describe('Wheel rendering', () => {
   })
 
   it('renders a single-item wheel as a full circle, not a degenerate wedge', () => {
-    render(<Wheel storageKey="wheel.single-item-test" defaultItems={['Pizza']} name="Test Wheel" />)
+    render(
+      <Wheel
+        storageKey="wheel.single-item-test"
+        defaultItems={['Pizza']}
+        name="Test Wheel"
+      />,
+    )
 
     const svg = screen.getByTestId('wheel-svg')
     const paths = svg.querySelectorAll('path')
@@ -46,7 +56,13 @@ describe('Wheel button semantics', () => {
   })
 
   it('disables the button when the item list is empty', () => {
-    render(<Wheel storageKey="wheel.button-disabled-test" defaultItems={[]} name="Test Wheel" />)
+    render(
+      <Wheel
+        storageKey="wheel.button-disabled-test"
+        defaultItems={[]}
+        name="Test Wheel"
+      />,
+    )
 
     const button = screen.getByRole('button', { name: 'Spin Test Wheel' })
     expect(button).toBeDisabled()
@@ -90,7 +106,11 @@ describe('Wheel button semantics', () => {
 describe('Wheel winner announcement', () => {
   it('marks the winner element as a polite live region', () => {
     render(
-      <Wheel storageKey="wheel.status-test" defaultItems={['Pizza', 'Tacos']} name="Test Wheel" />,
+      <Wheel
+        storageKey="wheel.status-test"
+        defaultItems={['Pizza', 'Tacos']}
+        name="Test Wheel"
+      />,
     )
 
     const winner = screen.getByTestId('winner')
@@ -324,26 +344,45 @@ describe('Wheel spin', () => {
 describe('Wheel item editor', () => {
   it('shows current items in the textarea, one per line', () => {
     render(
-      <Wheel storageKey="wheel.editor-test-1" defaultItems={['Pizza', 'Tacos']} name="Test Wheel" />,
+      <Wheel
+        storageKey="wheel.editor-test-1"
+        defaultItems={['Pizza', 'Tacos']}
+        name="Test Wheel"
+      />,
     )
     const textarea = screen.getByLabelText('Test Wheel items')
     expect(textarea).toHaveValue('Pizza\nTacos')
   })
 
   it('re-parses and persists items on blur', () => {
-    render(<Wheel storageKey="wheel.editor-test-2" defaultItems={['Pizza']} name="Test Wheel" />)
+    render(
+      <Wheel
+        storageKey="wheel.editor-test-2"
+        defaultItems={['Pizza']}
+        name="Test Wheel"
+      />,
+    )
     const textarea = screen.getByLabelText('Test Wheel items')
 
     fireEvent.change(textarea, { target: { value: 'Burgers\nFries\n' } })
     fireEvent.blur(textarea)
 
-    expect(JSON.parse(localStorage.getItem('wheel.editor-test-2'))).toEqual(['Burgers', 'Fries'])
+    expect(JSON.parse(localStorage.getItem('wheel.editor-test-2'))).toEqual([
+      'Burgers',
+      'Fries',
+    ])
     const svg = screen.getByTestId('wheel-svg')
     expect(svg.querySelectorAll('path')).toHaveLength(2)
   })
 
   it('disables spinning and shows a hint when the list is empty', () => {
-    render(<Wheel storageKey="wheel.editor-test-3" defaultItems={['Pizza']} name="Test Wheel" />)
+    render(
+      <Wheel
+        storageKey="wheel.editor-test-3"
+        defaultItems={['Pizza']}
+        name="Test Wheel"
+      />,
+    )
     const textarea = screen.getByLabelText('Test Wheel items')
 
     fireEvent.change(textarea, { target: { value: '' } })

@@ -17,7 +17,9 @@ const LABEL_RADIUS = 95
 const SPIN_DURATION_MS = 4000
 
 function prefersReducedMotion() {
-  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
+  return (
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
+  )
 }
 
 export default function Wheel({ storageKey, defaultItems, name }) {
@@ -49,7 +51,9 @@ export default function Wheel({ storageKey, defaultItems, name }) {
     setWinner(null)
     setSpinning(true)
     setTransitionMs(effectiveDuration)
-    setRotation((current) => computeTargetRotation(current, winningIndex, items.length))
+    setRotation((current) =>
+      computeTargetRotation(current, winningIndex, items.length),
+    )
     fallbackTimerId.current = setTimeout(resolveSpin, effectiveDuration + 500)
   }
 
@@ -91,7 +95,13 @@ export default function Wheel({ storageKey, defaultItems, name }) {
             {items.map((item, i) => (
               <path
                 key={i}
-                d={describeSlicePath(CENTER, CENTER, RADIUS, angles[i].start, angles[i].end)}
+                d={describeSlicePath(
+                  CENTER,
+                  CENTER,
+                  RADIUS,
+                  angles[i].start,
+                  angles[i].end,
+                )}
                 fill={getSliceColor(i)}
               />
             ))}
@@ -123,7 +133,12 @@ export default function Wheel({ storageKey, defaultItems, name }) {
           Add at least 1 item to spin.
         </p>
       )}
-      <p data-testid="winner" className="wheel-winner" role="status" aria-live="polite">
+      <p
+        data-testid="winner"
+        className="wheel-winner"
+        role="status"
+        aria-live="polite"
+      >
         {winner ? `Winner: ${winner}` : ''}
       </p>
       <textarea

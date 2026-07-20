@@ -22,7 +22,9 @@ describe('App', () => {
     fireEvent.change(editorA, { target: { value: 'Only Wheel A Item' } })
     fireEvent.blur(editorA)
 
-    expect(JSON.parse(localStorage.getItem('spinner.wheelA'))).toEqual(['Only Wheel A Item'])
+    expect(JSON.parse(localStorage.getItem('spinner.wheelA'))).toEqual([
+      'Only Wheel A Item',
+    ])
     expect(localStorage.getItem('spinner.wheelB')).toBeNull()
   })
 

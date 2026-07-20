@@ -40,7 +40,11 @@ describe('palette label contrast', () => {
     const r = parseInt(value.slice(0, 2), 16)
     const g = parseInt(value.slice(2, 4), 16)
     const b = parseInt(value.slice(4, 6), 16)
-    return 0.2126 * channelToLinear(r) + 0.7152 * channelToLinear(g) + 0.0722 * channelToLinear(b)
+    return (
+      0.2126 * channelToLinear(r) +
+      0.7152 * channelToLinear(g) +
+      0.0722 * channelToLinear(b)
+    )
   }
 
   function contrastRatio(hexA, hexB) {
@@ -106,7 +110,9 @@ describe('describeSlicePath', () => {
 
   it('draws a full-turn slice as a full circle, not a degenerate wedge', () => {
     const d = describeSlicePath(150, 150, 150, 0, 360)
-    const arcs = [...d.matchAll(/A [\d.]+ [\d.]+ \d+ \d+ \d+ (-?[\d.]+) (-?[\d.]+)/g)]
+    const arcs = [
+      ...d.matchAll(/A [\d.]+ [\d.]+ \d+ \d+ \d+ (-?[\d.]+) (-?[\d.]+)/g),
+    ]
     expect(arcs).toHaveLength(2)
 
     const [x1, y1] = arcs[0].slice(1).map(Number)
