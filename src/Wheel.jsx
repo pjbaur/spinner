@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useWheelItems } from './useWheelItems.js'
 import {
   getSliceColor,
@@ -13,6 +13,7 @@ import './Wheel.css'
 const CENTER = 150
 const RADIUS = 150
 const LABEL_RADIUS = 95
+const SPIN_DURATION_MS = 4000
 
 export default function Wheel({ storageKey, defaultItems }) {
   const [items, setItems] = useWheelItems(storageKey, defaultItems)
@@ -23,6 +24,16 @@ export default function Wheel({ storageKey, defaultItems }) {
   const [spinning, setSpinning] = useState(false)
   const [winner, setWinner] = useState(null)
   const pendingWinnerIndex = useRef(null)
+  const fallbackTimerId = useRef(null)
+
+  function resolveSpin() {
+    if (pendingWinnerIndex.current === null) return
+    clearTimeout(fallbackTimerId.current)
+    fallbackTimerId.current = null
+    setSpinning(false)
+    setWinner(items[pendingWinnerIndex.current])
+    pendingWinnerIndex.current = null
+  }
 
   function handleSpin() {
     if (spinning || items.length === 0) return
@@ -31,13 +42,17 @@ export default function Wheel({ storageKey, defaultItems }) {
     setWinner(null)
     setSpinning(true)
     setRotation((current) => computeTargetRotation(current, winningIndex, items.length))
+    fallbackTimerId.current = setTimeout(resolveSpin, SPIN_DURATION_MS + 500)
   }
 
   function handleTransitionEnd(e) {
     if (e.propertyName && e.propertyName !== 'transform') return
-    setSpinning(false)
-    setWinner(items[pendingWinnerIndex.current])
+    resolveSpin()
   }
+
+  useEffect(() => {
+    return () => clearTimeout(fallbackTimerId.current)
+  }, [])
 
   function handleEditorBlur() {
     setItems(parseItemsFromText(draftText))
@@ -50,7 +65,10 @@ export default function Wheel({ storageKey, defaultItems }) {
           data-testid="wheel-svg"
           viewBox="0 0 300 300"
           className="wheel-svg"
-          style={{ transform: `rotate(${rotation}deg)` }}
+          style={{
+            transform: `rotate(${rotation}deg)`,
+            transition: `transform ${SPIN_DURATION_MS}ms cubic-bezier(0.17, 0.67, 0.12, 0.99)`,
+          }}
           onClick={handleSpin}
           onTransitionEnd={handleTransitionEnd}
         >

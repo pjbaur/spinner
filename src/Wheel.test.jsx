@@ -60,6 +60,75 @@ describe('Wheel spin', () => {
 
     randomSpy.mockRestore()
   })
+
+  it('resolves via a fallback timer when transitionend never fires, unlocking the wheel', () => {
+    vi.useFakeTimers()
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
+
+    render(<Wheel storageKey="wheel.spin-test-3" defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']} />)
+    const svg = screen.getByTestId('wheel-svg')
+
+    fireEvent.click(svg)
+    expect(screen.getByTestId('winner')).toHaveTextContent('')
+
+    // SPIN_DURATION_MS (4000) + 500ms fallback margin, transitionend never fires
+    act(() => {
+      vi.advanceTimersByTime(4500)
+    })
+
+    expect(screen.getByTestId('winner')).toHaveTextContent('Winner: Pizza')
+
+    const rotationAfterFirstSpin = svg.style.transform
+    fireEvent.click(svg)
+    expect(svg.style.transform).not.toBe(rotationAfterFirstSpin)
+
+    randomSpy.mockRestore()
+    vi.useRealTimers()
+  })
+
+  it('resolves exactly once when transitionend fires before the fallback timer', () => {
+    vi.useFakeTimers()
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
+
+    render(<Wheel storageKey="wheel.spin-test-4" defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']} />)
+    const svg = screen.getByTestId('wheel-svg')
+
+    fireEvent.click(svg)
+    fireEvent.transitionEnd(svg, { propertyName: 'transform' })
+
+    expect(screen.getByTestId('winner')).toHaveTextContent('Winner: Pizza')
+
+    expect(() => {
+      act(() => {
+        vi.advanceTimersByTime(4500)
+      })
+    }).not.toThrow()
+
+    expect(screen.getByTestId('winner')).toHaveTextContent('Winner: Pizza')
+
+    randomSpy.mockRestore()
+    vi.useRealTimers()
+  })
+
+  it('clears the fallback timer on unmount, leaving no pending timers', () => {
+    vi.useFakeTimers()
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
+
+    const { unmount } = render(
+      <Wheel storageKey="wheel.spin-test-5" defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']} />,
+    )
+    const svg = screen.getByTestId('wheel-svg')
+
+    fireEvent.click(svg)
+    expect(vi.getTimerCount()).toBe(1)
+
+    unmount()
+
+    expect(vi.getTimerCount()).toBe(0)
+
+    randomSpy.mockRestore()
+    vi.useRealTimers()
+  })
 })
 
 describe('Wheel item editor', () => {

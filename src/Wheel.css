@@ -15,7 +15,6 @@
 .wheel-svg {
   width: 100%;
   height: 100%;
-  transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
 }
 
 .wheel-label {
