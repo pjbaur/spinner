@@ -110,6 +110,46 @@ describe('Wheel spin', () => {
     vi.useRealTimers()
   })
 
+  it('disables the item editor while spinning and re-enables it after resolution', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+
+    render(<Wheel storageKey="wheel.spin-test-6" defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']} />)
+    const svg = screen.getByTestId('wheel-svg')
+    const textarea = screen.getByLabelText('wheel items')
+
+    expect(textarea).not.toBeDisabled()
+
+    fireEvent.click(svg)
+    expect(textarea).toBeDisabled()
+
+    fireEvent.transitionEnd(svg, { propertyName: 'transform' })
+
+    expect(textarea).not.toBeDisabled()
+
+    Math.random.mockRestore()
+  })
+
+  it('shows the winner snapshotted at spin time, unaffected by item edits before resolution', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+
+    render(<Wheel storageKey="wheel.spin-test-7" defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']} />)
+    const svg = screen.getByTestId('wheel-svg')
+    const textarea = screen.getByLabelText('wheel items')
+
+    fireEvent.click(svg)
+
+    // Force an edit through mid-spin, bypassing the disabled textarea's
+    // UI-level protection, to prove resolveSpin never re-reads `items`.
+    fireEvent.change(textarea, { target: { value: 'Waffles\nPancakes' } })
+    fireEvent.blur(textarea)
+
+    fireEvent.transitionEnd(svg, { propertyName: 'transform' })
+
+    expect(screen.getByTestId('winner')).toHaveTextContent('Winner: Pizza')
+
+    Math.random.mockRestore()
+  })
+
   it('clears the fallback timer on unmount, leaving no pending timers', () => {
     vi.useFakeTimers()
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)

@@ -23,22 +23,22 @@ export default function Wheel({ storageKey, defaultItems }) {
   const [rotation, setRotation] = useState(0)
   const [spinning, setSpinning] = useState(false)
   const [winner, setWinner] = useState(null)
-  const pendingWinnerIndex = useRef(null)
+  const pendingWinnerItem = useRef(null)
   const fallbackTimerId = useRef(null)
 
   function resolveSpin() {
-    if (pendingWinnerIndex.current === null) return
+    if (pendingWinnerItem.current === null) return
     clearTimeout(fallbackTimerId.current)
     fallbackTimerId.current = null
     setSpinning(false)
-    setWinner(items[pendingWinnerIndex.current])
-    pendingWinnerIndex.current = null
+    setWinner(pendingWinnerItem.current)
+    pendingWinnerItem.current = null
   }
 
   function handleSpin() {
     if (spinning || items.length === 0) return
     const winningIndex = pickRandomIndex(items.length)
-    pendingWinnerIndex.current = winningIndex
+    pendingWinnerItem.current = items[winningIndex]
     setWinner(null)
     setSpinning(true)
     setRotation((current) => computeTargetRotation(current, winningIndex, items.length))
@@ -114,6 +114,7 @@ export default function Wheel({ storageKey, defaultItems }) {
         value={draftText}
         onChange={(e) => setDraftText(e.target.value)}
         onBlur={handleEditorBlur}
+        disabled={spinning}
       />
     </div>
   )
