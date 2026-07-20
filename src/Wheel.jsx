@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useWheelItems } from './useWheelItems.js'
 import {
   getSliceColor,
+  getSliceTextColor,
   buildSliceAngles,
   describeSlicePath,
   pickRandomIndex,
@@ -15,7 +16,11 @@ const RADIUS = 150
 const LABEL_RADIUS = 95
 const SPIN_DURATION_MS = 4000
 
-export default function Wheel({ storageKey, defaultItems }) {
+function prefersReducedMotion() {
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
+}
+
+export default function Wheel({ storageKey, defaultItems, name }) {
   const [items, setItems] = useWheelItems(storageKey, defaultItems)
   const [draftText, setDraftText] = useState(items.join('\n'))
   const angles = buildSliceAngles(items.length || 1)
@@ -23,6 +28,7 @@ export default function Wheel({ storageKey, defaultItems }) {
   const [rotation, setRotation] = useState(0)
   const [spinning, setSpinning] = useState(false)
   const [winner, setWinner] = useState(null)
+  const [transitionMs, setTransitionMs] = useState(SPIN_DURATION_MS)
   const pendingWinnerItem = useRef(null)
   const fallbackTimerId = useRef(null)
 
@@ -38,11 +44,13 @@ export default function Wheel({ storageKey, defaultItems }) {
   function handleSpin() {
     if (spinning || items.length === 0) return
     const winningIndex = pickRandomIndex(items.length)
+    const effectiveDuration = prefersReducedMotion() ? 0 : SPIN_DURATION_MS
     pendingWinnerItem.current = items[winningIndex]
     setWinner(null)
     setSpinning(true)
+    setTransitionMs(effectiveDuration)
     setRotation((current) => computeTargetRotation(current, winningIndex, items.length))
-    fallbackTimerId.current = setTimeout(resolveSpin, SPIN_DURATION_MS + 500)
+    fallbackTimerId.current = setTimeout(resolveSpin, effectiveDuration + 500)
   }
 
   function handleTransitionEnd(e) {
@@ -61,43 +69,53 @@ export default function Wheel({ storageKey, defaultItems }) {
   return (
     <div className="wheel-panel">
       <div className="wheel-wrapper">
-        <svg
-          data-testid="wheel-svg"
-          viewBox="0 0 300 300"
-          className="wheel-svg"
-          style={{
-            transform: `rotate(${rotation}deg)`,
-            transition: `transform ${SPIN_DURATION_MS}ms cubic-bezier(0.17, 0.67, 0.12, 0.99)`,
-          }}
+        <button
+          type="button"
+          className="wheel-button"
+          aria-label={`Spin ${name}`}
           onClick={handleSpin}
-          onTransitionEnd={handleTransitionEnd}
+          disabled={spinning || items.length === 0}
         >
-          {items.map((item, i) => (
-            <path
-              key={i}
-              d={describeSlicePath(CENTER, CENTER, RADIUS, angles[i].start, angles[i].end)}
-              fill={getSliceColor(i)}
-            />
-          ))}
-          {items.map((item, i) => {
-            const theta = (angles[i].mid * Math.PI) / 180
-            const x = CENTER + LABEL_RADIUS * Math.sin(theta)
-            const y = CENTER - LABEL_RADIUS * Math.cos(theta)
-            return (
-              <text
+          <svg
+            data-testid="wheel-svg"
+            viewBox="0 0 300 300"
+            className="wheel-svg"
+            style={{
+              transform: `rotate(${rotation}deg)`,
+              ...(transitionMs > 0 && {
+                transition: `transform ${transitionMs}ms cubic-bezier(0.17, 0.67, 0.12, 0.99)`,
+              }),
+            }}
+            onTransitionEnd={handleTransitionEnd}
+          >
+            {items.map((item, i) => (
+              <path
                 key={i}
-                x={x}
-                y={y}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                transform={`rotate(${angles[i].mid}, ${x}, ${y})`}
-                className="wheel-label"
-              >
-                {item}
-              </text>
-            )
-          })}
-        </svg>
+                d={describeSlicePath(CENTER, CENTER, RADIUS, angles[i].start, angles[i].end)}
+                fill={getSliceColor(i)}
+              />
+            ))}
+            {items.map((item, i) => {
+              const theta = (angles[i].mid * Math.PI) / 180
+              const x = CENTER + LABEL_RADIUS * Math.sin(theta)
+              const y = CENTER - LABEL_RADIUS * Math.cos(theta)
+              return (
+                <text
+                  key={i}
+                  x={x}
+                  y={y}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  transform={`rotate(${angles[i].mid}, ${x}, ${y})`}
+                  className="wheel-label"
+                  fill={getSliceTextColor(i)}
+                >
+                  {item}
+                </text>
+              )
+            })}
+          </svg>
+        </button>
         <div className="wheel-pointer" />
       </div>
       {items.length === 0 && (
@@ -105,11 +123,11 @@ export default function Wheel({ storageKey, defaultItems }) {
           Add at least 1 item to spin.
         </p>
       )}
-      <p data-testid="winner" className="wheel-winner">
+      <p data-testid="winner" className="wheel-winner" role="status" aria-live="polite">
         {winner ? `Winner: ${winner}` : ''}
       </p>
       <textarea
-        aria-label="wheel items"
+        aria-label={`${name} items`}
         className="wheel-editor"
         value={draftText}
         onChange={(e) => setDraftText(e.target.value)}

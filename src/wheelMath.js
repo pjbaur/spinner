@@ -1,16 +1,23 @@
+// Each fill is paired with the text color (white or near-black) that reaches
+// WCAG AA 4.5:1 contrast against it for the 14px wheel labels. See
+// wheelMath.test.js for the contrast math and assertion.
 export const PALETTE = [
-  '#e74c3c',
-  '#3498db',
-  '#2ecc71',
-  '#f1c40f',
-  '#9b59b6',
-  '#1abc9c',
-  '#e67e22',
-  '#34495e',
+  { fill: '#e74c3c', text: '#111111' },
+  { fill: '#3498db', text: '#111111' },
+  { fill: '#2ecc71', text: '#111111' },
+  { fill: '#f1c40f', text: '#111111' },
+  { fill: '#9b59b6', text: '#ffffff' },
+  { fill: '#1abc9c', text: '#111111' },
+  { fill: '#e67e22', text: '#111111' },
+  { fill: '#34495e', text: '#ffffff' },
 ]
 
 export function getSliceColor(index) {
-  return PALETTE[index % PALETTE.length]
+  return PALETTE[index % PALETTE.length].fill
+}
+
+export function getSliceTextColor(index) {
+  return PALETTE[index % PALETTE.length].text
 }
 
 export function parseItemsFromText(text) {

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { vi } from 'vitest'
 import Wheel from './Wheel.jsx'
@@ -9,7 +9,9 @@ beforeEach(() => {
 
 describe('Wheel rendering', () => {
   it('renders one slice path and label per item', () => {
-    render(<Wheel storageKey="wheel.render-test" defaultItems={['Pizza', 'Tacos', 'Sushi']} />)
+    render(
+      <Wheel storageKey="wheel.render-test" defaultItems={['Pizza', 'Tacos', 'Sushi']} name="Test Wheel" />,
+    )
 
     const svg = screen.getByTestId('wheel-svg')
     expect(svg.querySelectorAll('path')).toHaveLength(3)
@@ -19,7 +21,7 @@ describe('Wheel rendering', () => {
   })
 
   it('renders a single-item wheel as a full circle, not a degenerate wedge', () => {
-    render(<Wheel storageKey="wheel.single-item-test" defaultItems={['Pizza']} />)
+    render(<Wheel storageKey="wheel.single-item-test" defaultItems={['Pizza']} name="Test Wheel" />)
 
     const svg = screen.getByTestId('wheel-svg')
     const paths = svg.querySelectorAll('path')
@@ -28,16 +30,120 @@ describe('Wheel rendering', () => {
   })
 })
 
+describe('Wheel button semantics', () => {
+  it('exposes the spin control as a real button with a name-derived accessible name', () => {
+    render(
+      <Wheel
+        storageKey="wheel.button-name-test"
+        defaultItems={['Pizza', 'Tacos']}
+        name="Test Wheel"
+      />,
+    )
+
+    const button = screen.getByRole('button', { name: 'Spin Test Wheel' })
+    expect(button).toHaveAttribute('type', 'button')
+  })
+
+  it('disables the button when the item list is empty', () => {
+    render(<Wheel storageKey="wheel.button-disabled-test" defaultItems={[]} name="Test Wheel" />)
+
+    const button = screen.getByRole('button', { name: 'Spin Test Wheel' })
+    expect(button).toBeDisabled()
+  })
+
+  it('starts a spin when the button is focused and activated via keyboard', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+
+    render(
+      <Wheel
+        storageKey="wheel.keyboard-test"
+        defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']}
+        name="Test Wheel"
+      />,
+    )
+    const button = screen.getByRole('button', { name: 'Spin Test Wheel' })
+
+    button.focus()
+    expect(button).toHaveFocus()
+
+    // jsdom does not implement the browser's native "Enter/Space on a
+    // focused button dispatches click" behavior, so the keydown is fired
+    // for intent, and the click stands in for the resulting native
+    // activation on a real, focused <button>.
+    fireEvent.keyDown(button, { key: 'Enter', code: 'Enter' })
+    fireEvent.click(button)
+
+    const svg = screen.getByTestId('wheel-svg')
+    fireEvent.transitionEnd(svg, { propertyName: 'transform' })
+
+    expect(screen.getByTestId('winner')).toHaveTextContent('Winner: Pizza')
+
+    Math.random.mockRestore()
+  })
+})
+
+describe('Wheel winner announcement', () => {
+  it('marks the winner element as a polite live region', () => {
+    render(
+      <Wheel storageKey="wheel.status-test" defaultItems={['Pizza', 'Tacos']} name="Test Wheel" />,
+    )
+
+    const winner = screen.getByTestId('winner')
+    expect(winner).toHaveAttribute('role', 'status')
+    expect(winner).toHaveAttribute('aria-live', 'polite')
+  })
+})
+
+describe('Wheel reduced motion', () => {
+  afterEach(() => {
+    delete window.matchMedia
+  })
+
+  it('resolves the spin via the fallback timer in ~500ms with no transitionend when reduced motion is preferred', () => {
+    vi.useFakeTimers()
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
+    window.matchMedia = vi.fn().mockReturnValue({ matches: true })
+
+    render(
+      <Wheel
+        storageKey="wheel.reduced-motion-test"
+        defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']}
+        name="Test Wheel"
+      />,
+    )
+    const button = screen.getByRole('button', { name: 'Spin Test Wheel' })
+
+    fireEvent.click(button)
+    expect(screen.getByTestId('winner')).toHaveTextContent('')
+
+    act(() => {
+      vi.advanceTimersByTime(500)
+    })
+
+    expect(screen.getByTestId('winner')).toHaveTextContent('Winner: Pizza')
+
+    randomSpy.mockRestore()
+    vi.useRealTimers()
+  })
+})
+
 describe('Wheel spin', () => {
   it('shows the winner after the spin transition ends', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0)
 
-    render(<Wheel storageKey="wheel.spin-test-1" defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']} />)
+    render(
+      <Wheel
+        storageKey="wheel.spin-test-1"
+        defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']}
+        name="Test Wheel"
+      />,
+    )
+    const button = screen.getByRole('button', { name: 'Spin Test Wheel' })
     const svg = screen.getByTestId('wheel-svg')
 
     expect(screen.getByTestId('winner')).toHaveTextContent('')
 
-    fireEvent.click(svg)
+    fireEvent.click(button)
     // propertyName is ignored by the handler (jsdom has no TransitionEvent
     // to carry it) -- kept here since it documents intent for a reader.
     fireEvent.transitionEnd(svg, { propertyName: 'transform' })
@@ -50,12 +156,19 @@ describe('Wheel spin', () => {
   it('ignores clicks while already spinning', () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
 
-    render(<Wheel storageKey="wheel.spin-test-2" defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']} />)
+    render(
+      <Wheel
+        storageKey="wheel.spin-test-2"
+        defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']}
+        name="Test Wheel"
+      />,
+    )
+    const button = screen.getByRole('button', { name: 'Spin Test Wheel' })
     const svg = screen.getByTestId('wheel-svg')
 
-    fireEvent.click(svg)
+    fireEvent.click(button)
     const rotationAfterFirstClick = svg.style.transform
-    fireEvent.click(svg)
+    fireEvent.click(button)
     expect(svg.style.transform).toBe(rotationAfterFirstClick)
 
     randomSpy.mockRestore()
@@ -65,10 +178,17 @@ describe('Wheel spin', () => {
     vi.useFakeTimers()
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
 
-    render(<Wheel storageKey="wheel.spin-test-3" defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']} />)
+    render(
+      <Wheel
+        storageKey="wheel.spin-test-3"
+        defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']}
+        name="Test Wheel"
+      />,
+    )
+    const button = screen.getByRole('button', { name: 'Spin Test Wheel' })
     const svg = screen.getByTestId('wheel-svg')
 
-    fireEvent.click(svg)
+    fireEvent.click(button)
     expect(screen.getByTestId('winner')).toHaveTextContent('')
 
     // SPIN_DURATION_MS (4000) + 500ms fallback margin, transitionend never fires
@@ -79,7 +199,7 @@ describe('Wheel spin', () => {
     expect(screen.getByTestId('winner')).toHaveTextContent('Winner: Pizza')
 
     const rotationAfterFirstSpin = svg.style.transform
-    fireEvent.click(svg)
+    fireEvent.click(button)
     expect(svg.style.transform).not.toBe(rotationAfterFirstSpin)
 
     randomSpy.mockRestore()
@@ -90,10 +210,17 @@ describe('Wheel spin', () => {
     vi.useFakeTimers()
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
 
-    render(<Wheel storageKey="wheel.spin-test-4" defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']} />)
+    render(
+      <Wheel
+        storageKey="wheel.spin-test-4"
+        defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']}
+        name="Test Wheel"
+      />,
+    )
+    const button = screen.getByRole('button', { name: 'Spin Test Wheel' })
     const svg = screen.getByTestId('wheel-svg')
 
-    fireEvent.click(svg)
+    fireEvent.click(button)
     fireEvent.transitionEnd(svg, { propertyName: 'transform' })
 
     expect(screen.getByTestId('winner')).toHaveTextContent('Winner: Pizza')
@@ -113,13 +240,20 @@ describe('Wheel spin', () => {
   it('disables the item editor while spinning and re-enables it after resolution', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0)
 
-    render(<Wheel storageKey="wheel.spin-test-6" defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']} />)
+    render(
+      <Wheel
+        storageKey="wheel.spin-test-6"
+        defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']}
+        name="Test Wheel"
+      />,
+    )
+    const button = screen.getByRole('button', { name: 'Spin Test Wheel' })
     const svg = screen.getByTestId('wheel-svg')
-    const textarea = screen.getByLabelText('wheel items')
+    const textarea = screen.getByLabelText('Test Wheel items')
 
     expect(textarea).not.toBeDisabled()
 
-    fireEvent.click(svg)
+    fireEvent.click(button)
     expect(textarea).toBeDisabled()
 
     fireEvent.transitionEnd(svg, { propertyName: 'transform' })
@@ -132,11 +266,18 @@ describe('Wheel spin', () => {
   it('shows the winner snapshotted at spin time, unaffected by item edits before resolution', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0)
 
-    render(<Wheel storageKey="wheel.spin-test-7" defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']} />)
+    render(
+      <Wheel
+        storageKey="wheel.spin-test-7"
+        defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']}
+        name="Test Wheel"
+      />,
+    )
+    const button = screen.getByRole('button', { name: 'Spin Test Wheel' })
     const svg = screen.getByTestId('wheel-svg')
-    const textarea = screen.getByLabelText('wheel items')
+    const textarea = screen.getByLabelText('Test Wheel items')
 
-    fireEvent.click(svg)
+    fireEvent.click(button)
 
     // Force an edit through mid-spin, bypassing the disabled textarea's
     // UI-level protection, to prove resolveSpin never re-reads `items`.
@@ -155,11 +296,15 @@ describe('Wheel spin', () => {
     const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
 
     const { unmount } = render(
-      <Wheel storageKey="wheel.spin-test-5" defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']} />,
+      <Wheel
+        storageKey="wheel.spin-test-5"
+        defaultItems={['Pizza', 'Tacos', 'Sushi', 'Burgers']}
+        name="Test Wheel"
+      />,
     )
-    const svg = screen.getByTestId('wheel-svg')
+    const button = screen.getByRole('button', { name: 'Spin Test Wheel' })
 
-    fireEvent.click(svg)
+    fireEvent.click(button)
     expect(vi.getTimerCount()).toBe(1)
 
     unmount()
@@ -173,14 +318,16 @@ describe('Wheel spin', () => {
 
 describe('Wheel item editor', () => {
   it('shows current items in the textarea, one per line', () => {
-    render(<Wheel storageKey="wheel.editor-test-1" defaultItems={['Pizza', 'Tacos']} />)
-    const textarea = screen.getByLabelText('wheel items')
+    render(
+      <Wheel storageKey="wheel.editor-test-1" defaultItems={['Pizza', 'Tacos']} name="Test Wheel" />,
+    )
+    const textarea = screen.getByLabelText('Test Wheel items')
     expect(textarea).toHaveValue('Pizza\nTacos')
   })
 
   it('re-parses and persists items on blur', () => {
-    render(<Wheel storageKey="wheel.editor-test-2" defaultItems={['Pizza']} />)
-    const textarea = screen.getByLabelText('wheel items')
+    render(<Wheel storageKey="wheel.editor-test-2" defaultItems={['Pizza']} name="Test Wheel" />)
+    const textarea = screen.getByLabelText('Test Wheel items')
 
     fireEvent.change(textarea, { target: { value: 'Burgers\nFries\n' } })
     fireEvent.blur(textarea)
@@ -191,15 +338,15 @@ describe('Wheel item editor', () => {
   })
 
   it('disables spinning and shows a hint when the list is empty', () => {
-    render(<Wheel storageKey="wheel.editor-test-3" defaultItems={['Pizza']} />)
-    const textarea = screen.getByLabelText('wheel items')
+    render(<Wheel storageKey="wheel.editor-test-3" defaultItems={['Pizza']} name="Test Wheel" />)
+    const textarea = screen.getByLabelText('Test Wheel items')
 
     fireEvent.change(textarea, { target: { value: '' } })
     fireEvent.blur(textarea)
 
     expect(screen.getByTestId('empty-hint')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByTestId('wheel-svg'))
+    fireEvent.click(screen.getByRole('button', { name: 'Spin Test Wheel' }))
     expect(screen.getByTestId('winner')).toHaveTextContent('')
   })
 })

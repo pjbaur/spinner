@@ -8,8 +8,8 @@ export default function App() {
     <div className="app">
       <h1>Spinner</h1>
       <div className="wheels-row">
-        <Wheel storageKey="spinner.wheelA" defaultItems={DEFAULT_ITEMS} />
-        <Wheel storageKey="spinner.wheelB" defaultItems={DEFAULT_ITEMS} />
+        <Wheel storageKey="spinner.wheelA" defaultItems={DEFAULT_ITEMS} name="Wheel A" />
+        <Wheel storageKey="spinner.wheelB" defaultItems={DEFAULT_ITEMS} name="Wheel B" />
       </div>
     </div>
   )
