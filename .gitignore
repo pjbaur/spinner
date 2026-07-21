@@ -1,3 +1,11 @@
 node_modules/
 dist/
 .superpowers/
+
+# Terraform (infra/)
+# Note: infra/.terraform.lock.hcl SHOULD be committed (pins provider versions).
+infra/.terraform/
+infra/*.tfstate
+infra/*.tfstate.*
+infra/terraform.tfvars
+infra/*.tfplan

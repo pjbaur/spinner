@@ -1,0 +1,7 @@
+# Copy to terraform.tfvars and fill in your values. terraform.tfvars is gitignored.
+aws_region       = "us-east-1"
+domain_name      = "spinner.example.com"
+hosted_zone_name = "example.com"
+bucket_name      = "spinner-app-prod-1234" # must be globally unique
+github_repo      = "your-org/spinner"
+github_branch    = "main"
