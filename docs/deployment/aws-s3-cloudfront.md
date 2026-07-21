@@ -1,7 +1,7 @@
-# Deploying Spinner to AWS S3 + CloudFront (custom domain, Terraform)
+# Deploying Spinner to AWS S3 + CloudFront (custom domain, OpenTofu)
 
 This guide provisions production hosting for this Vite + React single-page app on
-AWS using **Terraform** (Infrastructure as Code), fronted by **CloudFront** with a
+AWS using **OpenTofu** (Infrastructure as Code), fronted by **CloudFront** with a
 **custom domain in Route 53** and an **ACM TLS certificate**. It then shows two
 ways to ship the built files: a **manual AWS CLI** first deploy and an automated
 **GitHub Actions** pipeline that runs on push to `main`.
@@ -10,6 +10,16 @@ The app is a purely static bundle — `npm run build` emits `dist/` with a singl
 `index.html` plus content-hashed assets under `dist/assets/`. There is no server,
 no API, and no client-side router, so hosting is "upload the folder, put a CDN in
 front, point DNS at it."
+
+> **OpenTofu is a drop-in fork of Terraform.** Everything here uses the `tofu` CLI
+> (install from [opentofu.org](https://opentofu.org/docs/intro/install/)). The
+> config is unchanged from Terraform: OpenTofu reads the same `.tf` files —
+> including the `terraform {}` settings block, which keeps that name for
+> portability — and the same `.terraform.lock.hcl`, `terraform.tfvars`, and
+> `terraform.tfstate` filenames. If you're migrating an existing Terraform state,
+> `tofu` reads a `terraform.tfstate` as-is; the first `tofu init` reconciles the
+> lock file's provider registry entries. Wherever you'd have run `terraform …`,
+> run `tofu …`.
 
 ---
 
@@ -47,16 +57,16 @@ Key properties:
 
 | Requirement                                         | Notes                                                                                                            |
 | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| AWS account + admin (or scoped) credentials         | For the Terraform apply. Configure with `aws configure` or SSO (`aws sso login`).                                |
+| AWS account + admin (or scoped) credentials         | For the OpenTofu apply. Configure with `aws configure` or SSO (`aws sso login`).                                 |
 | **AWS CLI v2**                                      | `aws --version` → 2.x. Used for the manual deploy.                                                               |
-| **Terraform ≥ 1.6**                                 | `terraform version`.                                                                                             |
+| **OpenTofu ≥ 1.6**                                  | `tofu version`.                                                                                                  |
 | A registered domain with a **Route 53 hosted zone** | You need the hosted zone ID. This guide assumes the apex or a subdomain you control, e.g. `spinner.example.com`. |
 | Node 22 + this repo                                 | `npm ci && npm run build` must succeed locally first.                                                            |
 | (For CI) A GitHub repo with Actions enabled         | The pipeline uses OIDC — no long-lived AWS keys stored in GitHub.                                                |
 
 > **Region note — read this once.** CloudFront can only use an ACM certificate
 > issued in **`us-east-1`**, regardless of where your S3 bucket lives. The
-> Terraform below uses a second, aliased AWS provider pinned to `us-east-1` purely
+> OpenTofu below uses a second, aliased AWS provider pinned to `us-east-1` purely
 > for the certificate. Your bucket can be in any region (this guide defaults it to
 > `us-east-1` too, for simplicity).
 
@@ -86,7 +96,7 @@ Two app-specific things to know:
 
 ---
 
-## Step 1 — Terraform project layout
+## Step 1 — OpenTofu project layout
 
 Create an `infra/` directory (kept separate from app code). All files below live in
 `infra/`.
@@ -115,7 +125,7 @@ infra/terraform.tfvars
 
 > **State:** for a solo project local state is fine. For a team, move state to an
 > S3 backend with DynamoDB locking (see "Remote state" at the end). Do it before
-> your first real apply if more than one person will run Terraform.
+> your first real apply if more than one person will run OpenTofu.
 
 ### `providers.tf`
 
@@ -543,9 +553,9 @@ output "gha_deploy_role_arn" {
 
 ```bash
 cd infra
-terraform init
-terraform plan      # review — expect ~15 resources to add
-terraform apply     # type "yes"
+tofu init
+tofu plan      # review — expect ~15 resources to add
+tofu apply     # type "yes"
 ```
 
 The apply blocks on ACM DNS validation (usually 2–5 minutes) and the CloudFront
@@ -553,7 +563,7 @@ distribution deploying (can take 5–15 minutes the first time). When it finishe
 note the outputs:
 
 ```bash
-terraform output
+tofu output
 # app_url                    = "https://spinner.example.com"
 # bucket_name                = "spinner-app-prod-1234"
 # cloudfront_distribution_id = "E1XXXXXXXXXXXX"
@@ -577,8 +587,8 @@ in two passes — everything except `index.html` with a long immutable cache, th
 # from the repo root
 npm run build
 
-BUCKET=$(cd infra && terraform output -raw bucket_name)
-DIST_ID=$(cd infra && terraform output -raw cloudfront_distribution_id)
+BUCKET=$(cd infra && tofu output -raw bucket_name)
+DIST_ID=$(cd infra && tofu output -raw cloudfront_distribution_id)
 
 # 1) Upload hashed assets with a 1-year immutable cache. --delete removes files
 #    from the bucket that no longer exist in dist/ (old hashed bundles).
@@ -672,11 +682,11 @@ jobs:
 Then in the GitHub repo, add three **repository variables** (Settings → Secrets and
 variables → Actions → _Variables_ tab — these are not secret):
 
-| Variable                         | Value (from `terraform output`) |
-| -------------------------------- | ------------------------------- |
-| `AWS_DEPLOY_ROLE_ARN`            | `gha_deploy_role_arn`           |
-| `AWS_S3_BUCKET`                  | `bucket_name`                   |
-| `AWS_CLOUDFRONT_DISTRIBUTION_ID` | `cloudfront_distribution_id`    |
+| Variable                         | Value (from `tofu output`)   |
+| -------------------------------- | ---------------------------- |
+| `AWS_DEPLOY_ROLE_ARN`            | `gha_deploy_role_arn`        |
+| `AWS_S3_BUCKET`                  | `bucket_name`                |
+| `AWS_CLOUDFRONT_DISTRIBUTION_ID` | `cloudfront_distribution_id` |
 
 This reuses the same lint/format/test gates as your existing CI, so a deploy only
 happens if the suite is green. Push to `main` (or run the workflow manually via
@@ -733,12 +743,12 @@ Expect well under **$1/month** unless the app goes viral.
 ## Teardown
 
 ```bash
-# Empty the bucket first (Terraform won't delete a non-empty versioned bucket).
-aws s3 rm "s3://$(cd infra && terraform output -raw bucket_name)/" --recursive
+# Empty the bucket first (OpenTofu won't delete a non-empty versioned bucket).
+aws s3 rm "s3://$(cd infra && tofu output -raw bucket_name)/" --recursive
 
 # If versioning left delete markers / old versions, purge them too (or set
 # force_destroy = true on the bucket resource before applying, then destroy).
-cd infra && terraform destroy
+cd infra && tofu destroy
 ```
 
 CloudFront distributions take several minutes to disable + delete during destroy —
@@ -750,7 +760,7 @@ this is normal.
 
 | Symptom                                                                       | Cause / fix                                                                                                                                                                           |
 | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `terraform apply` hangs on `aws_acm_certificate_validation`                   | The validation CNAME isn't resolving. Confirm `hosted_zone_name` is the exact zone and that Route 53 is authoritative for it (NS records at the registrar point to this zone).        |
+| `tofu apply` hangs on `aws_acm_certificate_validation`                        | The validation CNAME isn't resolving. Confirm `hosted_zone_name` is the exact zone and that Route 53 is authoritative for it (NS records at the registrar point to this zone).        |
 | CloudFront returns **AccessDenied (403)** for every path                      | Bucket policy/OAC mismatch. Ensure `aws_s3_bucket_policy` references the distribution ARN and the origin uses `origin_access_control_id`. Also confirm `index.html` was uploaded.     |
 | Site works but shows the **old version** after deploy                         | You didn't invalidate `/index.html`, or `index.html` was uploaded with a long cache. Re-run the invalidation and confirm its `cache-control` is `no-cache`.                           |
 | **CERT_INVALID / domain mismatch** in browser                                 | The ACM cert must cover the exact hostname in `aliases`. For apex + `www`, add both to `domain_name`/`subject_alternative_names` and to `aliases`.                                    |
@@ -760,7 +770,7 @@ this is normal.
 
 ---
 
-## Optional: remote Terraform state (do this before collaborating)
+## Optional: remote OpenTofu state (do this before collaborating)
 
 Local `terraform.tfstate` is fine solo. For a team, add a backend so state is shared
 and locked. Create an S3 bucket + DynamoDB table once (out of band), then add to
@@ -778,7 +788,11 @@ terraform {
 }
 ```
 
-Run `terraform init -migrate-state` to move existing local state up.
+Run `tofu init -migrate-state` to move existing local state up.
+
+> **OpenTofu ≥ 1.10** can lock state natively in the S3 backend (set
+> `use_lockfile = true`), so the `dynamodb_table` line is optional on newer
+> versions. It's kept above because it also works on 1.6–1.9.
 
 ---
 
@@ -786,12 +800,12 @@ Run `terraform init -migrate-state` to move existing local state up.
 
 ```bash
 # one-time infra
-cd infra && terraform init && terraform apply
+cd infra && tofu init && tofu apply
 
 # first deploy (manual)
 cd .. && npm run build
-BUCKET=$(cd infra && terraform output -raw bucket_name)
-DIST_ID=$(cd infra && terraform output -raw cloudfront_distribution_id)
+BUCKET=$(cd infra && tofu output -raw bucket_name)
+DIST_ID=$(cd infra && tofu output -raw cloudfront_distribution_id)
 aws s3 sync dist/ "s3://$BUCKET/" --delete --exclude index.html \
   --cache-control "public, max-age=31536000, immutable"
 aws s3 cp dist/index.html "s3://$BUCKET/index.html" \
