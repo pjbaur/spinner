@@ -1,16 +1,21 @@
-# infra/ — Terraform for Spinner hosting (S3 + CloudFront + Route 53)
+# infra/ — OpenTofu for Spinner hosting (S3 + CloudFront + Route 53)
 
 Provisions the AWS hosting for this app. Full walkthrough:
 [`../docs/deployment/aws-s3-cloudfront.md`](../docs/deployment/aws-s3-cloudfront.md).
+
+Uses [OpenTofu](https://opentofu.org/) (`tofu`) — a drop-in fork of Terraform. The
+`.tf` files (including the `terraform {}` settings block), `.terraform.lock.hcl`,
+`terraform.tfvars`, and `terraform.tfstate` filenames are unchanged; only the CLI
+binary differs. `tofu init` reconciles the lock file's provider registry entries.
 
 ## Quick start
 
 ```bash
 cp terraform.tfvars.example terraform.tfvars   # then edit values
-terraform init
-terraform plan
-terraform apply
-terraform output           # bucket_name, cloudfront_distribution_id, gha_deploy_role_arn, ...
+tofu init
+tofu plan
+tofu apply
+tofu output           # bucket_name, cloudfront_distribution_id, gha_deploy_role_arn, ...
 ```
 
 Then deploy the built app (from the repo root) per the deployment guide's Step 8,
