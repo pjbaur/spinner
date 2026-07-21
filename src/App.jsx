@@ -1,24 +1,5 @@
-import Wheel from './Wheel.jsx'
-import './App.css'
-
-const DEFAULT_ITEMS = ['Option A', 'Option B', 'Option C', 'Option D']
+import JerryWheel from './JerryWheel.jsx'
 
 export default function App() {
-  return (
-    <div className="app">
-      <h1>Spinner</h1>
-      <div className="wheels-row">
-        <Wheel
-          storageKey="spinner.wheelA"
-          defaultItems={DEFAULT_ITEMS}
-          name="Wheel A"
-        />
-        <Wheel
-          storageKey="spinner.wheelB"
-          defaultItems={DEFAULT_ITEMS}
-          name="Wheel B"
-        />
-      </div>
-    </div>
-  )
+  return <JerryWheel />
 }
