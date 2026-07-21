@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .superpowers/
+.claude/settings.local.json
 
 # Terraform (infra/)
 # Note: infra/.terraform.lock.hcl SHOULD be committed (pins provider versions).
