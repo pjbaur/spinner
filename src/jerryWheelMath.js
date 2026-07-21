@@ -1,45 +1,19 @@
-const CENTER = 160
-const RADIUS = 148
-const LABEL_RADIUS_FRACTION = 0.56
 const FILE_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
 
-function toRadians(deg) {
-  return (deg * Math.PI) / 180
+// Reel model: a vertical strip of item rows (each ITEM_H tall) scrolls so the
+// target index settles in the center slot. The strip is the label list repeated
+// N times, so index j and j+n look identical and j can be normalized into [0, n).
+
+// End index for a spin: land on `targetIndex` after `loops` whole revolutions,
+// starting from the current normalized index `start`. `end % n === targetIndex`.
+export function computeReelLanding(start, targetIndex, n, loops) {
+  return start + loops * n + ((((targetIndex - start) % n) + n) % n)
 }
 
-export function buildSegments(labels, colors) {
-  const n = labels.length
-  const step = 360 / n
-  return labels.map((label, i) => {
-    const a0 = -90 + i * step
-    const a1 = a0 + step
-    const mid = a0 + step / 2
-    const p0x = CENTER + RADIUS * Math.cos(toRadians(a0))
-    const p0y = CENTER + RADIUS * Math.sin(toRadians(a0))
-    const p1x = CENTER + RADIUS * Math.cos(toRadians(a1))
-    const p1y = CENTER + RADIUS * Math.sin(toRadians(a1))
-    const large = step > 180 ? 1 : 0
-    const d = `M ${CENTER} ${CENTER} L ${p0x.toFixed(2)} ${p0y.toFixed(2)} A ${RADIUS} ${RADIUS} 0 ${large} 1 ${p1x.toFixed(2)} ${p1y.toFixed(2)} Z`
-    const norm = ((mid % 360) + 360) % 360
-    const flip = norm > 90 && norm < 270
-    const textTransform =
-      `translate(${CENTER} ${CENTER}) rotate(${mid.toFixed(2)}) translate(${(RADIUS * LABEL_RADIUS_FRACTION).toFixed(1)} 0)` +
-      (flip ? ' rotate(180)' : '')
-    return { d, fill: colors[i % colors.length], label, textTransform }
-  })
-}
-
-export function computeLandingRotation(
-  currentRotation,
-  targetIndex,
-  segmentCount,
-  spins,
-) {
-  const step = 360 / segmentCount
-  const targetMod = (((360 - (targetIndex + 0.5) * step) % 360) + 360) % 360
-  const curMod = ((currentRotation % 360) + 360) % 360
-  const delta = spins * 360 + ((((targetMod - curMod) % 360) + 360) % 360)
-  return currentRotation + delta
+// translateY that seats index j in the center slot, with a one-loop buffer above
+// so the row above the first item wraps to show the last item (never blank).
+export function reelTranslateY(j, n, itemH) {
+  return itemH * (1 - (j + n))
 }
 
 export function genFileNumber(randomFn = Math.random) {
