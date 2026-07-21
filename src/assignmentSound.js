@@ -1,12 +1,13 @@
-export function createAssignmentSound(isSoundOn) {
+export function createAssignmentSound() {
   let ctx = null
+  let enabled = true
 
-  function on() {
-    return isSoundOn() !== false
+  function setEnabled(value) {
+    enabled = value !== false
   }
 
   function ensureAudio() {
-    if (!on()) return
+    if (!enabled) return
     if (!ctx) {
       try {
         const Ctor = window.AudioContext || window.webkitAudioContext
@@ -19,7 +20,7 @@ export function createAssignmentSound(isSoundOn) {
   }
 
   function blip(freq, dur, type, vol) {
-    if (!on() || !ctx) return
+    if (!enabled || !ctx) return
     const t = ctx.currentTime
     const osc = ctx.createOscillator()
     const gain = ctx.createGain()
@@ -44,7 +45,7 @@ export function createAssignmentSound(isSoundOn) {
   }
 
   function stamp() {
-    if (!on() || !ctx) return
+    if (!enabled || !ctx) return
     blip(150, 0.15, 'sine', 0.16)
     const len = Math.floor(ctx.sampleRate * 0.12)
     const buffer = ctx.createBuffer(1, len, ctx.sampleRate)
@@ -61,5 +62,5 @@ export function createAssignmentSound(isSoundOn) {
     src.start(ctx.currentTime)
   }
 
-  return { ensureAudio, tick, ding, stamp }
+  return { ensureAudio, tick, ding, stamp, setEnabled }
 }
