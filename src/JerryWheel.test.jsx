@@ -2,8 +2,8 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
-// Replace the real wheel with a stub that reports a fixed index on click.
-vi.mock('./AssignmentWheel.jsx', () => ({
+// Replace the real reel with a stub that reports a fixed index on click.
+vi.mock('./AssignmentReel.jsx', () => ({
   default: ({ title, onSpinEnd }) => (
     <div>
       <div>{title}</div>
@@ -23,7 +23,7 @@ describe('JerryWheel', () => {
     expect(screen.getByText('TEACHING ENVIRONMENT')).toBeInTheDocument()
     expect(screen.getByText('TEACHING SUBJECT')).toBeInTheDocument()
     expect(
-      screen.getByText('— awaiting results of both wheels —'),
+      screen.getByText('— awaiting results of both reels —'),
     ).toBeInTheDocument()
     expect(
       screen.queryByText('INTERIM ASSIGNMENT NOTICE'),
@@ -43,7 +43,7 @@ describe('JerryWheel', () => {
       screen.getByText(/^FILE SP-\d{4}-[A-HJ-NP-Z]{2}$/),
     ).toBeInTheDocument()
     expect(
-      screen.queryByText('— awaiting results of both wheels —'),
+      screen.queryByText('— awaiting results of both reels —'),
     ).not.toBeInTheDocument()
   })
 
@@ -57,7 +57,7 @@ describe('JerryWheel', () => {
       screen.queryByText('INTERIM ASSIGNMENT NOTICE'),
     ).not.toBeInTheDocument()
     expect(
-      screen.getByText('— awaiting results of both wheels —'),
+      screen.getByText('— awaiting results of both reels —'),
     ).toBeInTheDocument()
   })
 
