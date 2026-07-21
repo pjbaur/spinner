@@ -102,7 +102,7 @@ export default function JerryWheel({ teacherName = 'Jerry', soundOn = true }) {
           />
         </div>
 
-        <div className="jerry__result">
+        <div className="jerry__result" role="status" aria-live="polite">
           {!bothDone && (
             <div className="jerry__awaiting">
               — awaiting results of both wheels —
@@ -114,7 +114,7 @@ export default function JerryWheel({ teacherName = 'Jerry', soundOn = true }) {
               subject={SUBJECTS[result.topic]}
               environment={ENVIRONMENTS[result.env]}
               effectiveDate={effectiveDate}
-              fileNo={result.fileNo ?? 'PENDING'}
+              fileNo={result.fileNo}
               onFileNewRequest={handleReset}
             />
           )}
