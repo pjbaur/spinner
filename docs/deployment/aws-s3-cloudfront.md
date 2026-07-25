@@ -72,6 +72,51 @@ Key properties:
 
 ---
 
+## Provisioning access (IAM Identity Center permission set)
+
+`tofu plan`/`apply` here is a rare, human-run bootstrap that creates IAM
+resources (the OIDC provider + deploy role in `github_oidc.tf`) plus S3,
+CloudFront, ACM, and Route 53. **Don't run it as your everyday IAM user** — the
+standing privilege on a daily-use credential is a large blast radius. Use a
+dedicated, on-demand identity instead.
+
+This is separate from the **runtime** deploy identity — GitHub Actions assumes
+the tightly-scoped OIDC role from Step 6 (S3 write + CloudFront invalidate only).
+The permission set below is only for the human who runs OpenTofu.
+
+If you use **IAM Identity Center** (recommended):
+
+1. **Permission sets → Create permission set → Custom permission set.**
+2. Under **Inline policy**, paste [`infra/provisioner-policy.json`](../../infra/provisioner-policy.json).
+   (Skip `PowerUserAccess` — it denies the IAM writes this stack needs.)
+3. **Name** `spinner-infra-provisioner`; **Session duration** `4 hours`
+   (CloudFront/ACM applies are slow — avoids a mid-apply credential expiry).
+4. **AWS accounts →** select the account **→ Assign users or groups →** pick
+   yourself (or a group) **→** select `spinner-infra-provisioner`. Provisioning
+   creates an `AWSReservedSSO_spinner-infra-provisioner_<hash>` role in the
+   account — that's what OpenTofu assumes.
+5. Wire up the CLI and sign in:
+
+   ```bash
+   aws configure sso
+   # SSO start URL:  https://<your-portal>.awsapps.com/start
+   # SSO region:     <your Identity Center region>
+   # then pick: the account + spinner-infra-provisioner role
+   # CLI default region: us-east-1
+   # profile name:   spinner-infra
+
+   aws sso login --profile spinner-infra
+   export AWS_PROFILE=spinner-infra        # then run tofu (Step 7)
+   ```
+
+The policy is scoped to the services this stack touches. `Resource` is `*` for a
+first bootstrap; once resource names are stable you can tighten the IAM statement
+to the `${bucket_name}-*` role and the OIDC provider ARN. A pure `plan` only
+needs the read/describe actions; `apply` needs the writes (including the IAM
+create + `iam:PassRole`).
+
+---
+
 ## Step 0 — Confirm the build output
 
 From the repo root:
