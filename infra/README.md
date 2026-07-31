@@ -1,16 +1,21 @@
-# infra/ — Terraform for Spinner hosting (S3 + CloudFront + Route 53)
+# infra/ — OpenTofu for Spinner hosting (S3 + CloudFront + Route 53)
 
 Provisions the AWS hosting for this app. Full walkthrough:
 [`../docs/deployment/aws-s3-cloudfront.md`](../docs/deployment/aws-s3-cloudfront.md).
+
+Uses [OpenTofu](https://opentofu.org/) (`tofu`) — a drop-in fork of Terraform. The
+`.tf` files (including the `terraform {}` settings block), `.terraform.lock.hcl`,
+`terraform.tfvars`, and `terraform.tfstate` filenames are unchanged; only the CLI
+binary differs. `tofu init` reconciles the lock file's provider registry entries.
 
 ## Quick start
 
 ```bash
 cp terraform.tfvars.example terraform.tfvars   # then edit values
-terraform init
-terraform plan
-terraform apply
-terraform output           # bucket_name, cloudfront_distribution_id, gha_deploy_role_arn, ...
+tofu init
+tofu plan
+tofu apply
+tofu output           # bucket_name, cloudfront_distribution_id, gha_deploy_role_arn, ...
 ```
 
 Then deploy the built app (from the repo root) per the deployment guide's Step 8,
@@ -29,10 +34,18 @@ or push to `main` to trigger `.github/workflows/deploy.yml`.
 | `github_oidc.tf` | GitHub OIDC provider + deploy role (no stored keys)                                   |
 | `outputs.tf`     | Values consumed by the deploy step / CI                                               |
 
+Not part of the OpenTofu config:
+
+| File                      | Purpose                                                                                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `provisioner-policy.json` | IAM policy for the human who runs `tofu` (paste into an Identity Center permission set). See the deployment guide's "Provisioning access" section. |
+
 ## Notes
 
 - The ACM certificate **must** be in `us-east-1` for CloudFront — that's what the
   aliased provider in `providers.tf` is for. The bucket can be elsewhere.
 - State is local by default. Before collaborating, switch to a remote S3 backend
   (see the deployment guide's "Remote state" section).
+- Run `tofu` as a dedicated, on-demand identity — not your everyday IAM user.
+  See "Provisioning access" in the deployment guide (`provisioner-policy.json`).
 - `terraform.tfvars` and `*.tfstate*` are gitignored — never commit them.

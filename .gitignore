@@ -3,7 +3,7 @@ dist/
 .superpowers/
 .claude/settings.local.json
 
-# Terraform (infra/)
+# OpenTofu / Terraform (infra/)
 # Note: infra/.terraform.lock.hcl SHOULD be committed (pins provider versions).
 infra/.terraform/
 infra/*.tfstate
