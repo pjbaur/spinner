@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import AssignmentWheel from './AssignmentWheel.jsx'
+import AssignmentReel from './AssignmentReel.jsx'
 import AssignmentMemo from './AssignmentMemo.jsx'
 import { createAssignmentSound } from './assignmentSound.js'
 import {
@@ -25,8 +25,8 @@ const SUBJECTS = [
   'Shop Class',
   'Testing Prep',
 ]
-const ENV_COLORS = ['#25392d', '#31503c']
-const TOPIC_COLORS = ['#23232b', '#33333f']
+const ENV_WINDOW_BG = 'linear-gradient(#25392d, #1c2c22)'
+const TOPIC_WINDOW_BG = 'linear-gradient(#26262f, #1a1a21)'
 
 export default function JerryWheel({ teacherName = 'Jerry', soundOn = true }) {
   const [result, setResult] = useState({ env: null, topic: null, fileNo: null })
@@ -78,24 +78,24 @@ export default function JerryWheel({ teacherName = 'Jerry', soundOn = true }) {
             What will {teacherName} teach next?
           </div>
           <div className="jerry__subtitle">
-            OFFICE OF SUBSTITUTE PLACEMENT &nbsp;·&nbsp; SPIN BOTH WHEELS TO
+            OFFICE OF SUBSTITUTE PLACEMENT &nbsp;·&nbsp; PULL BOTH REELS TO
             RECEIVE TODAY&apos;S ASSIGNMENT
           </div>
         </div>
 
-        <div className="jerry__wheels">
-          <AssignmentWheel
+        <div className="jerry__reels">
+          <AssignmentReel
             title="TEACHING ENVIRONMENT"
             labels={ENVIRONMENTS}
-            colors={ENV_COLORS}
+            windowBg={ENV_WINDOW_BG}
             hasResult={result.env != null}
             sound={sound}
             onSpinEnd={(index) => handleSpinEnd('env', index)}
           />
-          <AssignmentWheel
+          <AssignmentReel
             title="TEACHING SUBJECT"
             labels={SUBJECTS}
-            colors={TOPIC_COLORS}
+            windowBg={TOPIC_WINDOW_BG}
             hasResult={result.topic != null}
             sound={sound}
             onSpinEnd={(index) => handleSpinEnd('topic', index)}
@@ -105,7 +105,7 @@ export default function JerryWheel({ teacherName = 'Jerry', soundOn = true }) {
         <div className="jerry__result" role="status" aria-live="polite">
           {!bothDone && (
             <div className="jerry__awaiting">
-              — awaiting results of both wheels —
+              — awaiting results of both reels —
             </div>
           )}
           {bothDone && (

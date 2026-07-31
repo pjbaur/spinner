@@ -1,64 +1,43 @@
 import { describe, it, expect } from 'vitest'
 import {
-  buildSegments,
-  computeLandingRotation,
+  computeReelLanding,
+  reelTranslateY,
   genFileNumber,
   nextWeekday,
   formatEffective,
 } from './jerryWheelMath.js'
 
-describe('buildSegments', () => {
-  const labels = ['A', 'B', 'C', 'D', 'E', 'F']
-  const colors = ['#111', '#222']
+describe('computeReelLanding', () => {
+  const n = 6
 
-  it('returns one entry per label with alternating fills', () => {
-    const segs = buildSegments(labels, colors)
-    expect(segs).toHaveLength(6)
-    expect(segs[0].fill).toBe('#111')
-    expect(segs[1].fill).toBe('#222')
-    expect(segs[2].fill).toBe('#111')
-    expect(segs.map((s) => s.label)).toEqual(labels)
-  })
-
-  it('draws each slice as an arc path from the center', () => {
-    const segs = buildSegments(labels, colors)
-    for (const s of segs) {
-      expect(s.d.startsWith('M 160 160 L ')).toBe(true)
-      expect(s.d).toMatch(/ A 148 148 0 [01] 1 /)
-      expect(s.d.endsWith(' Z')).toBe(true)
+  it('ends on the target index modulo the item count', () => {
+    for (let start = 0; start < n; start++) {
+      for (let idx = 0; idx < n; idx++) {
+        const end = computeReelLanding(start, idx, n, 4)
+        expect(((end % n) + n) % n).toBe(idx)
+      }
     }
   })
 
-  it('flips only lower-half labels 180 degrees to keep them upright', () => {
-    const segs = buildSegments(labels, colors)
-    // 6 segments, step 60, mids at -60,0,60,120,180,240 -> normalized 300,0,60,120,180,240
-    // flip when normalized mid in (90,270): indices 3 (120), 4 (180), 5 (240)
-    expect(segs[0].textTransform).not.toContain('rotate(180)')
-    expect(segs[1].textTransform).not.toContain('rotate(180)')
-    expect(segs[2].textTransform).not.toContain('rotate(180)')
-    expect(segs[3].textTransform).toContain('rotate(180)')
-    expect(segs[4].textTransform).toContain('rotate(180)')
-    expect(segs[5].textTransform).toContain('rotate(180)')
+  it('travels at least the requested whole loops and less than one more', () => {
+    const end = computeReelLanding(2, 5, n, 3)
+    const delta = end - 2
+    expect(delta).toBeGreaterThanOrEqual(3 * n)
+    expect(delta).toBeLessThan(4 * n)
+  })
+
+  it('still advances a full loop when target equals the start index', () => {
+    const end = computeReelLanding(3, 3, n, 3)
+    expect(end - 3).toBe(3 * n)
   })
 })
 
-describe('computeLandingRotation', () => {
-  const n = 6
-  const step = 360 / n
-
-  it('lands with the target segment centered under the top pointer', () => {
-    for (let idx = 0; idx < n; idx++) {
-      const end = computeLandingRotation(0, idx, n, 5)
-      const centered = (((end + (idx + 0.5) * step) % 360) + 360) % 360
-      expect(Math.min(centered, 360 - centered)).toBeLessThan(1e-6)
-    }
-  })
-
-  it('includes the requested number of whole spins beyond the current angle', () => {
-    const end = computeLandingRotation(37, 2, n, 5)
-    const delta = end - 37
-    expect(delta).toBeGreaterThanOrEqual(5 * 360)
-    expect(delta).toBeLessThan(6 * 360)
+describe('reelTranslateY', () => {
+  it('seats an index in the center slot with a one-loop buffer above', () => {
+    // index 0 with a 6-item strip, 58px rows -> 58 * (1 - (0 + 6)) = -290
+    expect(reelTranslateY(0, 6, 58)).toBe(-290)
+    // each item lower shifts the strip up by one row height
+    expect(reelTranslateY(1, 6, 58) - reelTranslateY(0, 6, 58)).toBe(-58)
   })
 })
 

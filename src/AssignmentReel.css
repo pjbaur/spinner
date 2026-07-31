@@ -1,0 +1,139 @@
+.reel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  flex: 1 1 300px;
+  max-width: 360px;
+}
+
+.reel__plaque {
+  font-family: 'Special Elite', monospace;
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  color: #3a2712;
+  background: linear-gradient(#d0a951, #a9812f);
+  padding: 8px 18px;
+  border-radius: 4px;
+  border: 2px solid #7a5d22;
+  box-shadow:
+    0 2px 7px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* wood housing — also the clickable target */
+.reel__cabinet {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  background: radial-gradient(circle at 50% 20%, #8a6036, #593a1d 72%, #3e260e);
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, 0.42),
+    inset 0 0 0 3px #3a2712,
+    inset 0 3px 12px rgba(255, 255, 255, 0.16);
+}
+
+.reel__cabinet:focus-visible {
+  outline: 3px solid #caa24b;
+  outline-offset: 3px;
+}
+
+.reel__cabinet:disabled {
+  cursor: default;
+}
+
+.reel__window {
+  position: relative;
+  height: 174px; /* 3 rows of 58px */
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 0 34px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 2px #2f1e0c;
+}
+
+.reel__strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  will-change: transform;
+}
+
+.reel__row {
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 14px;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 25px;
+  letter-spacing: 0.4px;
+  color: #eef0e6;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+.reel__fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 58px;
+  pointer-events: none;
+}
+
+.reel__fade--top {
+  top: 0;
+  background: linear-gradient(rgba(0, 0, 0, 0.8), transparent);
+}
+
+.reel__fade--bottom {
+  bottom: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+}
+
+.reel__slot {
+  position: absolute;
+  top: 58px;
+  left: 0;
+  right: 0;
+  height: 58px;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 rgba(202, 162, 75, 0.85),
+    inset 0 -1px 0 rgba(202, 162, 75, 0.85);
+  background: rgba(202, 162, 75, 0.07);
+}
+
+.reel__pointer {
+  position: absolute;
+  top: 87px;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
+}
+
+.reel__pointer--left {
+  left: -1px;
+  border-left: 12px solid #caa24b;
+}
+
+.reel__pointer--right {
+  right: -1px;
+  border-right: 12px solid #caa24b;
+}
+
+.reel__hint {
+  font-family: 'Special Elite', monospace;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  color: #5a3b1e;
+}
