@@ -41,6 +41,7 @@ export default function ConfigEditor({ idToken, onAuthExpired }) {
         err instanceof ConfigSaveError &&
         (err.status === 401 || err.status === 403)
       ) {
+        setStatus({ kind: 'idle' })
         onAuthExpired()
       } else if (err instanceof ConfigSaveError) {
         setStatus({ kind: 'error', errors: err.errors })

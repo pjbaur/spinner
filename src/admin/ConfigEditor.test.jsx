@@ -101,5 +101,6 @@ describe('ConfigEditor', () => {
     )
     await user.click(screen.getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(onAuthExpired).toHaveBeenCalled())
+    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled()
   })
 })
