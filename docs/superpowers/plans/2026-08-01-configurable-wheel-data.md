@@ -672,7 +672,7 @@ alert_email           = "you@example.com"
 # Single-admin user pool for the /admin config editor. Users are created by
 # an administrator only; there is no self-signup surface.
 resource "aws_cognito_user_pool" "admin" {
-  name = "spinner-admin"
+  name = "${var.bucket_name}-admin"
 
   # MFA off initially; pool supports enabling OPTIONAL later without recreation.
   mfa_configuration = "OFF"
@@ -698,7 +698,7 @@ resource "aws_cognito_user_pool" "admin" {
 }
 
 resource "aws_cognito_user_pool_client" "admin" {
-  name         = "spinner-admin-web"
+  name         = "${var.bucket_name}-admin-web"
   user_pool_id = aws_cognito_user_pool.admin.id
 
   # Public SPA client: authorization code + PKCE, no secret.
@@ -788,7 +788,7 @@ data "archive_file" "config_writer" {
 }
 
 resource "aws_iam_role" "config_writer" {
-  name = "spinner-config-writer"
+  name = "${var.bucket_name}-config-writer"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -806,7 +806,7 @@ resource "aws_iam_role_policy_attachment" "config_writer_logs" {
 
 # Exactly one object writable, exactly one distribution invalidatable.
 resource "aws_iam_role_policy" "config_writer" {
-  name = "spinner-config-writer-scope"
+  name = "${var.bucket_name}-config-writer-scope"
   role = aws_iam_role.config_writer.id
   policy = jsonencode({
     Version = "2012-10-17"
@@ -826,7 +826,7 @@ resource "aws_iam_role_policy" "config_writer" {
 }
 
 resource "aws_lambda_function" "config_writer" {
-  function_name    = "spinner-config-writer"
+  function_name    = "${var.bucket_name}-config-writer"
   description      = "Validates and writes the wheel config JSON, then invalidates the CDN path"
   role             = aws_iam_role.config_writer.arn
   runtime          = "nodejs22.x"
@@ -885,7 +885,7 @@ git commit -m "feat: package and provision config writer Lambda with scoped IAM"
 
 ```hcl
 resource "aws_apigatewayv2_api" "config" {
-  name          = "spinner-config-api"
+  name          = "${var.bucket_name}-config-api"
   description   = "Write path for the wheel config JSON"
   protocol_type = "HTTP"
 
@@ -1026,7 +1026,7 @@ git commit -m "feat: add config write API with Cognito JWT auth and throttling"
 # actual monthly account spend. AWS has no hard spend cutoff; alerting is
 # the control.
 resource "aws_budgets_budget" "monthly" {
-  name         = "spinner-monthly-cost"
+  name         = "${var.bucket_name}-monthly-cost"
   budget_type  = "COST"
   limit_amount = "20"
   limit_unit   = "USD"
@@ -1767,14 +1767,14 @@ In a browser: `https://<domain>/admin` → Sign in (Hosted UI) → edit an entry
 - [ ] **Step 4: Guardrails present**
 
 ```bash
-aws lambda get-function-configuration --function-name spinner-config-writer \
+aws lambda get-function-configuration --function-name "<bucket-name>-config-writer" \
   --query 'ReservedConcurrentExecutions'   # expect 5 (via get-function --query Concurrency)
 aws apigatewayv2 get-stages --api-id <id> \
   --query 'Items[0].DefaultRouteSettings'  # expect rate 5, burst 10
-aws budgets describe-budgets --account-id <account id>  # expect spinner-monthly-cost
+aws budgets describe-budgets --account-id <account id>  # expect <bucket-name>-monthly-cost
 ```
 
-(If `get-function-configuration` does not return concurrency, use `aws lambda get-function --function-name spinner-config-writer --query 'Concurrency'`.)
+(If `get-function-configuration` does not return concurrency, use `aws lambda get-function --function-name "<bucket-name>-config-writer" --query 'Concurrency'`.)
 
 - [ ] **Step 5: Update work log / report**
 
