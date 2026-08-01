@@ -17,3 +17,23 @@ output "app_url" {
 output "gha_deploy_role_arn" {
   value = aws_iam_role.gha_deploy.arn
 }
+
+output "config_api_endpoint" {
+  description = "Base URL of the config write API (VITE_CONFIG_API_URL)"
+  value       = aws_apigatewayv2_api.config.api_endpoint
+}
+
+output "cognito_authority" {
+  description = "OIDC authority URL for the admin user pool (VITE_COGNITO_AUTHORITY)"
+  value       = "https://cognito-idp.${var.aws_region}.amazonaws.com/${aws_cognito_user_pool.admin.id}"
+}
+
+output "cognito_client_id" {
+  description = "Cognito app client id (VITE_COGNITO_CLIENT_ID)"
+  value       = aws_cognito_user_pool_client.admin.id
+}
+
+output "cognito_user_pool_id" {
+  description = "Cognito user pool id (for admin-create-user)"
+  value       = aws_cognito_user_pool.admin.id
+}
