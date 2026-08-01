@@ -193,11 +193,7 @@ Approximately $0/month at expected traffic:
 - S3: one ~1 KB object; negligible.
 - CloudFront: within always-free tier; invalidations ≤ 1,000 paths/month free.
 - Lambda + HTTP API: free tier / ~$1 per million requests; writes are rare.
-- Cognito: one monthly active user. **Open item:** exact free-tier terms of
-  the post-2024 "Essentials" tier for new pools must be verified during
-  implementation; worst case is on the order of $0.02/month.
-
-## Open questions
-
-- Cognito Essentials free-tier terms (above). Verify against current AWS
-  pricing docs before `tofu apply`.
+- Cognito: one monthly active user. Verified 2026-08-01 against the AWS
+  pricing page: the Essentials tier (default for new user pools) includes
+  10,000 MAUs free indefinitely for direct sign-ins, $0.015/MAU beyond.
+  One admin user is $0/month.
