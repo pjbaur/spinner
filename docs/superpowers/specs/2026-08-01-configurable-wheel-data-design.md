@@ -39,6 +39,25 @@ authentication on the API route and IAM on the Lambda. The S3 bucket stays
 private behind CloudFront Origin Access Control; nothing about the current
 posture loosens.
 
+### DDoS / abuse posture
+
+AWS Shield Standard (included free with CloudFront) covers L3/L4
+volumetric attacks, and the CDN absorbs L7 request floods; the practical
+risk for this site is a billing spike ("denial of wallet"), not downtime.
+Three free controls bound that risk:
+
+- **Billing alerts:** AWS Budgets alerts at $5 and $20 monthly spend.
+- **API throttling:** stage-level rate limit on the HTTP API
+  (5 req/s, burst 10) caps abuse of the write path.
+- **Lambda reserved concurrency:** cap the config-writer function at 5
+  concurrent executions. The JWT authorizer already rejects
+  unauthenticated requests before Lambda is invoked.
+
+AWS WAF and Shield Advanced are deliberately out of scope: their monthly
+cost is disproportionate to this app's threat model. WAF can be layered
+onto the CloudFront distribution later without redesign if real abuse
+appears.
+
 ## Architecture
 
 ```
@@ -130,8 +149,12 @@ New resources:
 
 - `cognito.tf` — user pool, app client (code + PKCE, no client secret),
   hosted UI domain.
-- `api.tf` — HTTP API, JWT authorizer, route, stage, Lambda integration.
-- `lambda.tf` — function, role, log group, scoped IAM policy.
+- `api.tf` — HTTP API, JWT authorizer, route, stage (with throttling:
+  rate 5 req/s, burst 10), Lambda integration.
+- `lambda.tf` — function (reserved concurrency 5), role, log group,
+  scoped IAM policy.
+- `budgets.tf` — AWS Budgets alerts at $5 and $20 monthly account spend,
+  notifying the owner's email.
 - CloudFront: no new origin; `/config/*` inherits the default S3 origin.
   Add a cache behavior for `/config/*` with ~300s TTL if the default
   behavior's policy doesn't already fit.
