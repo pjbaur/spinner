@@ -30,6 +30,10 @@ jobs:
       - run: npm run format:check
       - run: npm test
       - run: npm run build
+        env:
+          VITE_CONFIG_API_URL: ${{ vars.VITE_CONFIG_API_URL }}
+          VITE_COGNITO_AUTHORITY: ${{ vars.VITE_COGNITO_AUTHORITY }}
+          VITE_COGNITO_CLIENT_ID: ${{ vars.VITE_COGNITO_CLIENT_ID }}
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -39,7 +43,7 @@ jobs:
       - name: Sync assets (immutable) and index.html (no-cache)
         run: |
           aws s3 sync dist/ "s3://${{ vars.AWS_S3_BUCKET }}/" \
-            --delete --exclude "index.html" \
+            --delete --exclude "index.html" --exclude "config/*" \
             --cache-control "public, max-age=31536000, immutable"
           aws s3 cp dist/index.html "s3://${{ vars.AWS_S3_BUCKET }}/index.html" \
             --cache-control "no-cache, no-store, must-revalidate" \
