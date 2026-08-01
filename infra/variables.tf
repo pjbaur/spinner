@@ -29,3 +29,13 @@ variable "github_branch" {
   type        = string
   default     = "main"
 }
+
+variable "cognito_domain_prefix" {
+  description = "Globally-unique Cognito hosted UI domain prefix, e.g. spinner-admin-1234"
+  type        = string
+}
+
+variable "alert_email" {
+  description = "Email address that receives budget alerts"
+  type        = string
+}
