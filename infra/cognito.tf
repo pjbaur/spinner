@@ -1,7 +1,7 @@
 # Single-admin user pool for the /admin config editor. Users are created by
 # an administrator only; there is no self-signup surface.
 resource "aws_cognito_user_pool" "admin" {
-  name = "spinner-admin"
+  name = "${var.bucket_name}-admin"
 
   # MFA off initially; pool supports enabling OPTIONAL later without recreation.
   mfa_configuration = "OFF"
@@ -27,7 +27,7 @@ resource "aws_cognito_user_pool" "admin" {
 }
 
 resource "aws_cognito_user_pool_client" "admin" {
-  name         = "spinner-admin-web"
+  name         = "${var.bucket_name}-admin-web"
   user_pool_id = aws_cognito_user_pool.admin.id
 
   # Public SPA client: authorization code + PKCE, no secret.

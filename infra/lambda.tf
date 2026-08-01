@@ -20,7 +20,7 @@ data "archive_file" "config_writer" {
 }
 
 resource "aws_iam_role" "config_writer" {
-  name = "spinner-config-writer"
+  name = "${var.bucket_name}-config-writer"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -38,7 +38,7 @@ resource "aws_iam_role_policy_attachment" "config_writer_logs" {
 
 # Exactly one object writable, exactly one distribution invalidatable.
 resource "aws_iam_role_policy" "config_writer" {
-  name = "spinner-config-writer-scope"
+  name = "${var.bucket_name}-config-writer-scope"
   role = aws_iam_role.config_writer.id
   policy = jsonencode({
     Version = "2012-10-17"
@@ -58,7 +58,7 @@ resource "aws_iam_role_policy" "config_writer" {
 }
 
 resource "aws_lambda_function" "config_writer" {
-  function_name    = "spinner-config-writer"
+  function_name    = "${var.bucket_name}-config-writer"
   description      = "Validates and writes the wheel config JSON, then invalidates the CDN path"
   role             = aws_iam_role.config_writer.arn
   runtime          = "nodejs22.x"
