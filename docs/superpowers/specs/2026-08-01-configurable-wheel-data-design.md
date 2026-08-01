@@ -170,12 +170,12 @@ New resources:
 
 ## Error handling
 
-| Failure | Behavior |
-| --- | --- |
-| Config fetch/parse/validation fails on the public site | Silent fallback to built-in default lists |
-| Invalid payload on save | `400` with per-field messages, shown in the admin form |
-| Unauthenticated/expired session on save | `401`/`403` → redirect to Cognito login |
-| S3 or CloudFront call fails in Lambda | `500`; admin UI shows a retry message; config object unchanged |
+| Failure                                                | Behavior                                                       |
+| ------------------------------------------------------ | -------------------------------------------------------------- |
+| Config fetch/parse/validation fails on the public site | Silent fallback to built-in default lists                      |
+| Invalid payload on save                                | `400` with per-field messages, shown in the admin form         |
+| Unauthenticated/expired session on save                | `401`/`403` → redirect to Cognito login                        |
+| S3 or CloudFront call fails in Lambda                  | `500`; admin UI shows a retry message; config object unchanged |
 
 ## Testing
 

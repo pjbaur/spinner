@@ -57,10 +57,12 @@ Zip layout note: the Lambda zip preserves repo-relative layout (`lambda/…`, `s
 ### Task 1: Shared config module
 
 **Files:**
+
 - Create: `shared/wheelConfig.mjs`
 - Test: `shared/wheelConfig.test.js`
 
 **Interfaces:**
+
 - Consumes: nothing (dependency-free ESM).
 - Produces (used by Tasks 2, 3, 9, 10):
   - `CONFIG_PATH` — string `'/config/jerry.json'`
@@ -150,7 +152,9 @@ describe('validateWheelConfig', () => {
       environments: ['ok', '   ', 'x'.repeat(41)],
     })
     expect(result.ok).toBe(false)
-    expect(result.errors).toContain('environments[1] must be a non-empty string')
+    expect(result.errors).toContain(
+      'environments[1] must be a non-empty string',
+    )
     expect(result.errors).toContain('environments[2] exceeds 40 characters')
   })
 })
@@ -274,12 +278,14 @@ git commit -m "feat: add shared wheel config module (defaults + validation)"
 ### Task 2: Public site reads runtime config
 
 **Files:**
+
 - Create: `src/useWheelConfig.js`
 - Test: `src/useWheelConfig.test.js`
 - Modify: `src/JerryWheel.jsx` (lines 12-27 constants; lines 89, 97, 114-115 usages)
 - Modify: `src/JerryWheel.test.jsx` (stub fetch)
 
 **Interfaces:**
+
 - Consumes: `CONFIG_PATH`, `DEFAULT_CONFIG`, `validateWheelConfig` from `shared/wheelConfig.mjs` (Task 1).
 - Produces: `useWheelConfig()` React hook → `{ version, environments, subjects }`; returns `DEFAULT_CONFIG` immediately, swaps to fetched config when valid.
 
@@ -436,10 +442,12 @@ git commit -m "feat: load wheel lists from runtime config with default fallback"
 ### Task 3: Lambda config writer
 
 **Files:**
+
 - Create: `lambda/handler.mjs`, `lambda/index.mjs`
 - Test: `lambda/handler.test.js`
 
 **Interfaces:**
+
 - Consumes: `validateWheelConfig` from `shared/wheelConfig.mjs` (Task 1), via relative import `../shared/wheelConfig.mjs`.
 - Produces:
   - `createHandler({ putObject, invalidate })` → async HTTP API v2 handler returning `{ statusCode, headers, body }`. `putObject(key: string, body: string)` and `invalidate(callerReference: string)` are injected async functions.
@@ -622,10 +630,12 @@ git commit -m "feat: add config writer Lambda handler with injected effects"
 ### Task 4: Infra: Cognito user pool
 
 **Files:**
+
 - Create: `infra/cognito.tf`
 - Modify: `infra/variables.tf`, `infra/terraform.tfvars.example`
 
 **Interfaces:**
+
 - Consumes: `var.domain_name` (existing).
 - Produces (referenced by Tasks 5-6): `aws_cognito_user_pool.admin`, `aws_cognito_user_pool_client.admin`, `aws_cognito_user_pool_domain.admin`, `var.cognito_domain_prefix`.
 
@@ -729,10 +739,12 @@ git commit -m "feat: add Cognito user pool for admin config editing"
 ### Task 5: Infra: Lambda packaging and IAM
 
 **Files:**
+
 - Create: `infra/lambda.tf`
 - Modify: `infra/providers.tf`
 
 **Interfaces:**
+
 - Consumes: `lambda/*.mjs` + `shared/wheelConfig.mjs` from Tasks 1/3; `aws_s3_bucket.site` and `aws_cloudfront_distribution.site` (existing).
 - Produces (referenced by Task 6): `aws_lambda_function.config_writer`.
 
@@ -858,10 +870,12 @@ git commit -m "feat: package and provision config writer Lambda with scoped IAM"
 ### Task 6: Infra: HTTP API, JWT authorizer, CSP
 
 **Files:**
+
 - Create: `infra/api.tf`
 - Modify: `infra/cloudfront.tf` (CSP `connect-src` line 44), `infra/outputs.tf`
 
 **Interfaces:**
+
 - Consumes: Task 4 Cognito resources, Task 5 `aws_lambda_function.config_writer`.
 - Produces: `aws_apigatewayv2_api.config` and outputs `config_api_endpoint`, `cognito_authority`, `cognito_client_id`, `cognito_user_pool_id` (consumed by Tasks 8-9 as `VITE_*` values).
 
@@ -995,9 +1009,11 @@ git commit -m "feat: add config write API with Cognito JWT auth and throttling"
 ### Task 7: Infra: budget alerts
 
 **Files:**
+
 - Create: `infra/budgets.tf`
 
 **Interfaces:**
+
 - Consumes: `var.alert_email` (declared in Task 4).
 - Produces: standalone; nothing downstream.
 
@@ -1049,9 +1065,11 @@ git commit -m "feat: add monthly budget alerts at 5 and 20 dollars"
 ### Task 8: CI: protect config object, pass VITE vars
 
 **Files:**
+
 - Modify: `.github/workflows/deploy.yml` (build step line 32, sync step lines 39-46)
 
 **Interfaces:**
+
 - Consumes: GitHub Actions repo variables `VITE_CONFIG_API_URL`, `VITE_COGNITO_AUTHORITY`, `VITE_COGNITO_CLIENT_ID` (set in Task 11 from tofu outputs).
 - Produces: deploys that no longer delete `config/jerry.json` and bake the admin env into the bundle.
 
@@ -1060,25 +1078,25 @@ git commit -m "feat: add monthly budget alerts at 5 and 20 dollars"
 Replace the build step:
 
 ```yaml
-      - run: npm run build
+- run: npm run build
 ```
 
 with:
 
 ```yaml
-      - run: npm run build
-        env:
-          VITE_CONFIG_API_URL: ${{ vars.VITE_CONFIG_API_URL }}
-          VITE_COGNITO_AUTHORITY: ${{ vars.VITE_COGNITO_AUTHORITY }}
-          VITE_COGNITO_CLIENT_ID: ${{ vars.VITE_COGNITO_CLIENT_ID }}
+- run: npm run build
+  env:
+    VITE_CONFIG_API_URL: ${{ vars.VITE_CONFIG_API_URL }}
+    VITE_COGNITO_AUTHORITY: ${{ vars.VITE_COGNITO_AUTHORITY }}
+    VITE_COGNITO_CLIENT_ID: ${{ vars.VITE_COGNITO_CLIENT_ID }}
 ```
 
 In the sync step, add the exclude BEFORE `--delete` acts on the config prefix (order of flags does not matter to the CLI; what matters is that the exclude is present):
 
 ```yaml
-          aws s3 sync dist/ "s3://${{ vars.AWS_S3_BUCKET }}/" \
-            --delete --exclude "index.html" --exclude "config/*" \
-            --cache-control "public, max-age=31536000, immutable"
+aws s3 sync dist/ "s3://${{ vars.AWS_S3_BUCKET }}/" \
+--delete --exclude "index.html" --exclude "config/*" \
+--cache-control "public, max-age=31536000, immutable"
 ```
 
 - [ ] **Step 2: Commit**
@@ -1097,11 +1115,13 @@ Until Task 11 sets the repo variables, the `VITE_*` values are empty strings in 
 ### Task 9: Admin auth shell and API client
 
 **Files:**
+
 - Modify: `package.json` (deps), `src/main.jsx`
 - Create: `src/admin/AdminApp.jsx`, `src/admin/configApi.js`
 - Test: `src/admin/configApi.test.js`
 
 **Interfaces:**
+
 - Consumes: `shared/wheelConfig.mjs` (Task 1); env `import.meta.env.VITE_CONFIG_API_URL`, `VITE_COGNITO_AUTHORITY`, `VITE_COGNITO_CLIENT_ID`; `ConfigEditor` (Task 10 — created there; this task references it, so Task 10's file must exist before this task's suite passes: create the two tasks on one branch, or temporarily stub — see Step 4 note).
 - Produces:
   - `loadConfig()` → Promise resolving to a valid config (fetched or `DEFAULT_CONFIG`).
@@ -1354,10 +1374,12 @@ git commit -m "feat: add /admin auth shell and config API client"
 ### Task 10: Admin config editor UI
 
 **Files:**
+
 - Create (replacing any Task 9 placeholder): `src/admin/ConfigEditor.jsx`
 - Test: `src/admin/ConfigEditor.test.jsx`
 
 **Interfaces:**
+
 - Consumes: `loadConfig`, `saveConfig`, `ConfigSaveError` from `./configApi.js` (Task 9); `validateWheelConfig` from `shared/wheelConfig.mjs` (Task 1). Props: `idToken: string`, `onAuthExpired: () => void` (called on a 401/403 save so the shell can restart sign-in, per the spec's error-handling table).
 - Produces: default export `ConfigEditor` used by `AdminApp` (Task 9).
 
@@ -1395,7 +1417,9 @@ beforeEach(() => {
 
 async function renderLoaded() {
   render(<ConfigEditor idToken="tok" />)
-  await waitFor(() => expect(screen.getByDisplayValue('Gym')).toBeInTheDocument())
+  await waitFor(() =>
+    expect(screen.getByDisplayValue('Gym')).toBeInTheDocument(),
+  )
 }
 
 describe('ConfigEditor', () => {
@@ -1449,7 +1473,9 @@ describe('ConfigEditor', () => {
 
   it('shows server errors from a failed save', async () => {
     const user = userEvent.setup()
-    saveConfig.mockRejectedValue(new ConfigSaveError(400, ['version must be 1']))
+    saveConfig.mockRejectedValue(
+      new ConfigSaveError(400, ['version must be 1']),
+    )
     await renderLoaded()
     await user.click(screen.getByRole('button', { name: 'Save' }))
     expect(await screen.findByText('version must be 1')).toBeInTheDocument()
@@ -1518,7 +1544,10 @@ export default function ConfigEditor({ idToken, onAuthExpired }) {
       await saveConfig(candidate, idToken)
       setStatus({ kind: 'saved' })
     } catch (err) {
-      if (err instanceof ConfigSaveError && (err.status === 401 || err.status === 403)) {
+      if (
+        err instanceof ConfigSaveError &&
+        (err.status === 401 || err.status === 403)
+      ) {
         onAuthExpired()
       } else if (err instanceof ConfigSaveError) {
         setStatus({ kind: 'error', errors: err.errors })
