@@ -7,28 +7,14 @@ import {
   nextWeekday,
   formatEffective,
 } from './jerryWheelMath.js'
+import { useWheelConfig } from './useWheelConfig.js'
 import './JerryWheel.css'
 
-const ENVIRONMENTS = [
-  'Kindergarten',
-  'Grade School',
-  'Middle School',
-  'After School',
-  'School Bus',
-  'Summer School',
-]
-const SUBJECTS = [
-  'P.E.',
-  'Nap-Time Patrol',
-  'Cafeteria Duty',
-  'Potty Rotation',
-  'Shop Class',
-  'Testing Prep',
-]
 const ENV_WINDOW_BG = 'linear-gradient(#25392d, #1c2c22)'
 const TOPIC_WINDOW_BG = 'linear-gradient(#26262f, #1a1a21)'
 
 export default function JerryWheel({ teacherName = 'Jerry', soundOn = true }) {
+  const { environments, subjects } = useWheelConfig()
   const [result, setResult] = useState({ env: null, topic: null, fileNo: null })
   const [muted, setMuted] = useState(!soundOn)
 
@@ -86,7 +72,7 @@ export default function JerryWheel({ teacherName = 'Jerry', soundOn = true }) {
         <div className="jerry__reels">
           <AssignmentReel
             title="TEACHING ENVIRONMENT"
-            labels={ENVIRONMENTS}
+            labels={environments}
             windowBg={ENV_WINDOW_BG}
             hasResult={result.env != null}
             sound={sound}
@@ -94,7 +80,7 @@ export default function JerryWheel({ teacherName = 'Jerry', soundOn = true }) {
           />
           <AssignmentReel
             title="TEACHING SUBJECT"
-            labels={SUBJECTS}
+            labels={subjects}
             windowBg={TOPIC_WINDOW_BG}
             hasResult={result.topic != null}
             sound={sound}
@@ -111,8 +97,8 @@ export default function JerryWheel({ teacherName = 'Jerry', soundOn = true }) {
           {bothDone && (
             <AssignmentMemo
               teacherName={teacherName}
-              subject={SUBJECTS[result.topic]}
-              environment={ENVIRONMENTS[result.env]}
+              subject={subjects[result.topic]}
+              environment={environments[result.env]}
               effectiveDate={effectiveDate}
               fileNo={result.fileNo}
               onFileNewRequest={handleReset}

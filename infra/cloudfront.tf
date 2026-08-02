@@ -41,7 +41,9 @@ resource "aws_cloudfront_response_headers_policy" "site" {
         "font-src https://fonts.gstatic.com",
         # The kraft-paper grain is an inline SVG data URI used as a background.
         "img-src 'self' data:",
-        "connect-src 'self'",
+        # /admin calls the config API and the Cognito endpoints (OIDC
+        # metadata + token exchange) via fetch.
+        "connect-src 'self' ${aws_apigatewayv2_api.config.api_endpoint} https://cognito-idp.${var.aws_region}.amazonaws.com https://${var.cognito_domain_prefix}.auth.${var.aws_region}.amazoncognito.com",
         "base-uri 'self'",
         "form-action 'none'",
         "object-src 'none'",

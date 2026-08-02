@@ -1,6 +1,7 @@
 # Handoff: "What Will Jerry Teach Next?" — Assignment Reels
 
 ## Overview
+
 A single-page, self-contained novelty app. Two independent "slot-machine reel" windows let
 the user pull for a random **teaching environment** and a random **teaching subject**. Each
 reel is a horizontal window in which the text choices scroll **vertically** and settle in a
@@ -10,12 +11,15 @@ stamps in confirming the assignment. It is a gag gift for a substitute teacher (
 artistic/punk type placed in deliberately anachronistic gym-teacher-style situations.
 
 ## Screenshots
+
 See `screenshots/`:
+
 - `01-initial.png` — landing state (header banner, both slot-reel windows, brass plaques).
 - `02-result-memo.png` — the "Interim Assignment Notice" memo after both reels stop,
   with the rubber "ASSIGNMENT CONFIRMED" stamp.
 
 ## About the Design Files
+
 The file in this bundle (`Jerry's Assignment Wheel.dc.html`) is a **design reference
 created in HTML** — a working prototype showing the intended look and behavior, not
 production code to ship directly. The task is to **recreate this design in your target
@@ -24,13 +28,16 @@ implement it as a small React single-page app (the prototype's logic maps cleanl
 single React component with `useState` + `requestAnimationFrame` + Web Audio).
 
 ## Fidelity
+
 **High-fidelity.** Final colors, typography, spacing, animation timing, and sound design
 are all specified below and should be reproduced faithfully.
 
 ## Screens / Views
+
 Single screen, vertical stack, centered, max content width ~820px. Top to bottom:
 
 ### 1. Header banner
+
 - Framed "chalkboard" plaque. Green board with thick wood frame.
 - Background: `linear-gradient(#2b4133, #20342a)`; border `12px solid #6f4b2a`;
   border-radius `12px`; box-shadow `0 12px 34px rgba(0,0,0,.4), inset 0 0 70px rgba(0,0,0,.45), inset 0 0 0 2px #3a2712`; padding `24px 26px`; centered text.
@@ -40,6 +47,7 @@ Single screen, vertical stack, centered, max content width ~820px. Top to bottom
   — Special Elite, 11.5px, letter-spacing 2px, color `rgba(242,244,234,.72)`, margin-top 10px.
 
 ### 2. Reels row
+
 Flex row, `gap: 26px`, wrap, centered, align-items flex-start, full width. Two reel columns,
 each `flex: 1 1 300px; max-width: 360px` (so they sit side-by-side on desktop and stack on
 phones). Identical structure, different data + window tint:
@@ -50,6 +58,7 @@ phones). Identical structure, different data + window tint:
   - Items (6): P.E., Nap-Time Patrol, Cafeteria Duty, Potty Rotation, Shop Class, Testing Prep
 
 Each reel column (flex column, align center, `gap: 14px`):
+
 - **Brass plaque title**: Special Elite, 11px, letter-spacing 2.5px, color `#3a2712`,
   background `linear-gradient(#d0a951, #a9812f)`, padding `8px 18px`, border-radius 4px,
   border `2px solid #7a5d22`, box-shadow `0 2px 7px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.4)`.
@@ -75,11 +84,13 @@ Each reel column (flex column, align center, `gap: 14px`):
   Text: "tap to pull" → "assigning…" (while spinning) → "tap to re-pull" (after a result).
 
 ### 3. Result area (below reels, min-height 30px)
+
 - **Before both pulled**: "— awaiting results of both reels —", Special Elite 13px,
   letter-spacing 1.5px, color `#5a3b1e`, opacity .75, centered.
 - **After both pulled**: the memo (below).
 
 ### 4. Assignment memo (appears when BOTH reels have a result)
+
 - Aged-paper card, `width: min(560px, 92vw)`, `linear-gradient(#f4edd8, #e7dcbf)`,
   color `#2b2b2b`, border `1px solid #cbbd97`, border-radius 3px,
   box-shadow `0 18px 42px rgba(0,0,0,.36)`, padding `34px 40px 28px`, Special Elite font.
@@ -103,15 +114,18 @@ Each reel column (flex column, align center, `gap: 14px`):
   "FILE NEW REQUEST" (Special Elite 12px, background `#2b2b2b`, color `#f4edd8`, padding `10px 17px`, border-radius 3px).
 
 ### 5. Page footer
+
 "Assignments are final. Appeals may be filed with the vice principal, who is also unavailable."
 — Special Elite, 10.5px, letter-spacing 1.5px, color `rgba(58,39,18,.55)`, centered.
 
 ### Page background
+
 - `radial-gradient(ellipse at 50% -8%, #e4d3ac, #cdb488 52%, #b6996c 100%)` (kraft paper).
 - Overlay grain: an SVG `feTurbulence` fractal-noise data-URI, `mix-blend-mode: multiply`,
   opacity .10, `pointer-events: none`. Purely decorative — omit if it complicates your stack.
 
 ## Interactions & Behavior
+
 - **Tap a reel cabinet to pull it.** Ignored if that reel is already spinning. The two reels
   are fully independent (pull either, in any order, re-pull freely).
 - **Reel model**: each reel shows a vertical strip of item rows (`ITEM_H = 58px`). The window
@@ -141,15 +155,18 @@ Each reel column (flex column, align center, `gap: 14px`):
   current position; the memo disappears and hints reset to "tap to re-pull").
 
 ## Sound design (Web Audio API)
+
 Create/resume `AudioContext` lazily on the first pull (user gesture). All sounds gated by
 the `soundOn` prop. Building blocks are short oscillator "blip"s: set gain to ~0.0001, ramp up
 to peak over 5ms, then `exponentialRampToValueAtTime(0.0001, t+dur)`.
+
 - **tick** (each item crossing during the spin): square wave, 1250Hz, 0.028s, peak gain 0.035.
 - **ding** (on stop): triangle 680Hz 0.16s (gain .09), then after 115ms triangle 1020Hz 0.34s (gain .075).
 - **stamp** (when memo appears): sine 150Hz 0.15s (gain .16) "thunk" + a ~0.12s white-noise burst
   (buffer with `(random*2-1) * (1 - i/len)^2` decay envelope, gain .13).
 
 ## State Management
+
 - `spinning: { env: bool, topic: bool }`
 - `result: { env: number|null, topic: number|null }` — index into the label array
 - `fileNo: string|null` — set once when both results first exist
@@ -158,20 +175,39 @@ to peak over 5ms, then `exponentialRampToValueAtTime(0.0001, t+dur)`.
 - Derived: `bothDone = result.env != null && result.topic != null`.
 
 ## Data
+
 ```js
-environments = ['Kindergarten','Grade School','Middle School','After School','School Bus','Summer School'];
-subjects     = ['P.E.','Nap-Time Patrol','Cafeteria Duty','Potty Rotation','Shop Class','Testing Prep'];
+environments = [
+  'Kindergarten',
+  'Grade School',
+  'Middle School',
+  'After School',
+  'School Bus',
+  'Summer School',
+]
+subjects = [
+  'P.E.',
+  'Nap-Time Patrol',
+  'Cafeteria Duty',
+  'Potty Rotation',
+  'Shop Class',
+  'Testing Prep',
+]
 ```
+
 File number format: `SP-` + 4 random digits + `-` + 2 random letters (letters exclude I/O), e.g. `SP-4821-KT`.
 Effective date: today + 1, skipping Sat/Sun, formatted with `toLocaleDateString('en-US', {weekday,month:'long',day,year})`.
 
 ## Configurable props (tweaks)
+
 - `teacherName` (string, default "Jerry") — used in the memo's SUBSTITUTE field. (The banner
   headline is hardcoded "Jerry" in the prototype; parameterize if desired.)
 - `soundOn` (boolean, default true) — master switch for all sound.
 
 ## Design Tokens
+
 Colors:
+
 - Kraft paper: `#e4d3ac`, `#cdb488`, `#b6996c`
 - Wood housing: `#8a6036`, `#6f4b2a`, `#593a1d`, `#3e260e`, `#3a2712`, `#2f1e0c`
 - Brass: `#d0a951`, `#caa24b`, `#a9812f`, `#8a6a24`, `#7a5d22`
@@ -183,20 +219,25 @@ Colors:
 - Warm ink accents: `#5a3b1e`, `#3a2712`
 
 Typography (Google Fonts):
+
 - `Patrick Hand` — chalk lettering (banner title, reel item labels)
 - `Special Elite` — typewriter (everything else: UI, plaques, memo)
 
 Metrics:
+
 - `ITEM_H = 58px` (reel row height); window height `174px` (3 rows); `COPIES = 12` (strip repeats).
 
 Animation:
+
 - Spin: 3400ms, easeOutCubic. Memo: memoin .35s ease. Stamp: stampin .42s cubic-bezier(.2,1.4,.4,1), scale 2.6→1.
 
 ## Assets
+
 None external. Fonts from Google Fonts. The paper-grain texture is an inline SVG data-URI
 (feTurbulence) — no image files. No icon library used.
 
 ## Files
+
 - `Jerry's Assignment Wheel.dc.html` — the full working prototype (design reference). It is a
   "Design Component": the meaningful parts are the HTML template markup and the `class Component`
   logic block (reel/placement math, sound, state). Ignore the `support.js` runtime wrapper —

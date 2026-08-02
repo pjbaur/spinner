@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
@@ -13,6 +13,12 @@ vi.mock('./AssignmentReel.jsx', () => ({
     </div>
   ),
 }))
+
+beforeEach(() => {
+  // JerryWheel now fetches /config/jerry.json on mount; fail the fetch so
+  // tests exercise the built-in default lists.
+  vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
+})
 
 import JerryWheel from './JerryWheel.jsx'
 
