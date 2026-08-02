@@ -6,6 +6,7 @@ const oidcConfig = {
   client_id: import.meta.env.VITE_COGNITO_CLIENT_ID,
   redirect_uri: `${window.location.origin}/admin`,
   scope: 'openid email',
+  automaticSilentRenew: false,
   onSigninCallback: () => {
     // Strip ?code=&state= after the redirect back from the Hosted UI.
     window.history.replaceState({}, '', '/admin')
