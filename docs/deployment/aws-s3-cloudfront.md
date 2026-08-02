@@ -88,7 +88,10 @@ If you use **IAM Identity Center** (recommended):
 
 1. **Permission sets → Create permission set → Custom permission set.**
 2. Under **Inline policy**, paste [`infra/provisioner-policy.json`](../../infra/provisioner-policy.json).
-   (Skip `PowerUserAccess` — it denies the IAM writes this stack needs.)
+   (Skip `PowerUserAccess` — it denies the IAM writes this stack needs.) The
+   policy grew to cover the config-editor stack (Cognito, HTTP API, Lambda,
+   log groups, and the Lambda execution role) — if your permission set already
+   has an older version, re-paste the current file before applying.
 3. **Name** `spinner-infra-provisioner`; **Session duration** `4 hours`
    (CloudFront/ACM applies are slow — avoids a mid-apply credential expiry).
 4. **AWS accounts →** select the account **→ Assign users or groups →** pick
