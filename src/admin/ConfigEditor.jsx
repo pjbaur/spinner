@@ -36,7 +36,7 @@ export default function ConfigEditor({ idToken, onAuthExpired }) {
     try {
       const warnings = await saveConfig(candidate, idToken)
       if (warnings && warnings.length > 0) {
-        setStatus({ kind: 'saved-with-warning', warnings })
+        setStatus({ kind: 'saved-with-warning' })
       } else {
         setStatus({ kind: 'saved' })
       }

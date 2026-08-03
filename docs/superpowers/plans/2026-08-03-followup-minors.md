@@ -21,17 +21,17 @@ accurate-but-misleading error contract to a proper partial-success one.
 
 1. **docs/deployment/aws-s3-cloudfront.md refresh**
    a. Provisioning section (~lines 92-97): the provisioner-policy re-paste
-      sentence became a dense run-on with two parenthetical asides during
-      PR #4. Split into readable sentences; keep the meaning (policy
-      changed, must re-paste into the IAM Identity Center permission set).
+   sentence became a dense run-on with two parenthetical asides during
+   PR #4. Split into readable sentences; keep the meaning (policy
+   changed, must re-paste into the IAM Identity Center permission set).
    b. Stale code snippets: the doc still shows `aliases = [var.domain_name]`
-      and a variables.tf snippet without the optional
-      `alternate_domain_name` variable added in PR #4 (infra/locals.tf is
-      now the single source for domain lists). Update snippets to match
-      current infra/.
+   and a variables.tf snippet without the optional
+   `alternate_domain_name` variable added in PR #4 (infra/locals.tf is
+   now the single source for domain lists). Update snippets to match
+   current infra/.
    c. The doc predates cognito.tf, api.tf, lambda.tf, budgets.tf — add
-      brief coverage or a pointer to infra/README.md rather than
-      duplicating it.
+   brief coverage or a pointer to infra/README.md rather than
+   duplicating it.
    The doc uses spinner.example.com placeholders — keep placeholders, do
    not introduce real domains.
 
