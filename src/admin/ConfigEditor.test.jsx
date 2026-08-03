@@ -103,4 +103,27 @@ describe('ConfigEditor', () => {
     await waitFor(() => expect(onAuthExpired).toHaveBeenCalled())
     expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled()
   })
+
+  it('disables move up/down buttons at list boundaries', async () => {
+    await renderLoaded()
+    // First environment item: up button disabled, down button enabled
+    const upFirstEnv = screen.getByRole('button', {
+      name: 'Move environments entry 1 up',
+    })
+    const downFirstEnv = screen.getByRole('button', {
+      name: 'Move environments entry 1 down',
+    })
+    expect(upFirstEnv).toBeDisabled()
+    expect(downFirstEnv).not.toBeDisabled()
+
+    // Last environment item: up button enabled, down button disabled
+    const upLastEnv = screen.getByRole('button', {
+      name: 'Move environments entry 2 up',
+    })
+    const downLastEnv = screen.getByRole('button', {
+      name: 'Move environments entry 2 down',
+    })
+    expect(upLastEnv).not.toBeDisabled()
+    expect(downLastEnv).toBeDisabled()
+  })
 })
