@@ -28,9 +28,19 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
+function mockUseAuth(overrides = {}) {
+  return useAuth.mockReturnValue({
+    isLoading: false,
+    error: undefined,
+    isAuthenticated: false,
+    signinRedirect: vi.fn(),
+    ...overrides,
+  })
+}
+
 describe('AdminApp', () => {
   it('wires the OIDC redirect and sign-in callback to the shared admin path', () => {
-    useAuth.mockReturnValue({ isLoading: true })
+    mockUseAuth({ isLoading: true })
     render(<AdminApp />)
 
     const props = AuthProvider.mock.calls[0][0]
@@ -43,11 +53,7 @@ describe('AdminApp', () => {
   })
 
   it('shows a loading message while the session is being checked', () => {
-    useAuth.mockReturnValue({
-      isLoading: true,
-      error: undefined,
-      isAuthenticated: false,
-    })
+    mockUseAuth({ isLoading: true })
     render(<AdminApp />)
 
     expect(screen.getByText('Checking session…')).toBeInTheDocument()
@@ -55,11 +61,7 @@ describe('AdminApp', () => {
   })
 
   it('shows the auth error when sign-in fails', () => {
-    useAuth.mockReturnValue({
-      isLoading: false,
-      error: new Error('network unreachable'),
-      isAuthenticated: false,
-    })
+    mockUseAuth({ error: new Error('network unreachable') })
     render(<AdminApp />)
 
     expect(
@@ -71,12 +73,7 @@ describe('AdminApp', () => {
   it('prompts sign-in when unauthenticated and starts the redirect on click', async () => {
     const user = userEvent.setup()
     const signinRedirect = vi.fn()
-    useAuth.mockReturnValue({
-      isLoading: false,
-      error: undefined,
-      isAuthenticated: false,
-      signinRedirect,
-    })
+    mockUseAuth({ signinRedirect })
     render(<AdminApp />)
 
     const button = screen.getByRole('button', {
@@ -89,12 +86,9 @@ describe('AdminApp', () => {
   })
 
   it('renders the config editor with the id token when authenticated', () => {
-    useAuth.mockReturnValue({
-      isLoading: false,
-      error: undefined,
+    mockUseAuth({
       isAuthenticated: true,
       user: { id_token: 'the-id-token' },
-      signinRedirect: vi.fn(),
     })
     render(<AdminApp />)
 
@@ -107,9 +101,7 @@ describe('AdminApp', () => {
   it('re-triggers sign-in when the config editor reports an expired session', async () => {
     const user = userEvent.setup()
     const signinRedirect = vi.fn()
-    useAuth.mockReturnValue({
-      isLoading: false,
-      error: undefined,
+    mockUseAuth({
       isAuthenticated: true,
       user: { id_token: 'the-id-token' },
       signinRedirect,
