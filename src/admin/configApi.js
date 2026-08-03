@@ -13,8 +13,8 @@ export class ConfigSaveError extends Error {
   }
 }
 
-// no-store: the editor must always start from what is actually stored,
-// not a CDN-cached copy.
+// no-store: bypass browser cache to fetch fresh data on reload.
+// Note: CloudFront may still serve stale content (up to 300s) absent invalidation.
 export async function loadConfig() {
   try {
     const res = await fetch(CONFIG_PATH, { cache: 'no-store' })

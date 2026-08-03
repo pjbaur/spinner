@@ -57,7 +57,7 @@ resource "aws_cloudfront_distribution" "site" {
   is_ipv6_enabled     = true
   comment             = "Spinner app"
   default_root_object = "index.html"
-  aliases             = [var.domain_name]
+  aliases             = local.all_domain_names
   price_class         = "PriceClass_100" # NA + EU edges; cheapest. Widen if needed.
 
   origin {

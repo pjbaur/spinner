@@ -4,9 +4,10 @@ data "aws_route53_zone" "primary" {
 }
 
 resource "aws_acm_certificate" "site" {
-  provider          = aws.us_east_1 # MUST be us-east-1 for CloudFront
-  domain_name       = var.domain_name
-  validation_method = "DNS"
+  provider                  = aws.us_east_1 # MUST be us-east-1 for CloudFront
+  domain_name               = var.domain_name
+  subject_alternative_names = local.alternate_domain_names
+  validation_method         = "DNS"
 
   lifecycle {
     create_before_destroy = true

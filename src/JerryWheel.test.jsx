@@ -1,24 +1,23 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+// JerryWheel now fetches /config/jerry.json on mount; fail the fetch so
+// tests exercise the built-in default lists.
+vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
+
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
-// Replace the real reel with a stub that reports a fixed index on click.
+// Replace the real reel with a stub that reports the first label on click,
+// mirroring the real component's onSpinEnd(label) contract.
 vi.mock('./AssignmentReel.jsx', () => ({
-  default: ({ title, onSpinEnd }) => (
+  default: ({ title, labels, onSpinEnd }) => (
     <div>
       <div>{title}</div>
-      <button type="button" onClick={() => onSpinEnd(0)}>
+      <button type="button" onClick={() => onSpinEnd(labels[0])}>
         spin {title}
       </button>
     </div>
   ),
 }))
-
-beforeEach(() => {
-  // JerryWheel now fetches /config/jerry.json on mount; fail the fetch so
-  // tests exercise the built-in default lists.
-  vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
-})
 
 import JerryWheel from './JerryWheel.jsx'
 
@@ -42,7 +41,7 @@ describe('JerryWheel', () => {
     await user.click(screen.getByText('spin TEACHING ENVIRONMENT'))
     await user.click(screen.getByText('spin TEACHING SUBJECT'))
     expect(screen.getByText('INTERIM ASSIGNMENT NOTICE')).toBeInTheDocument()
-    // index 0 for both -> environments[0] and subjects[0]
+    // stub lands on labels[0] for both -> environments[0] and subjects[0]
     expect(screen.getByText('Kindergarten')).toBeInTheDocument()
     expect(screen.getByText('P.E.')).toBeInTheDocument()
     expect(

@@ -57,19 +57,57 @@ describe('AssignmentReel spinning', () => {
     expect(props.onSpinEnd).not.toHaveBeenCalled()
   })
 
-  it('reports the forced target index when the pull completes', async () => {
+  it('reports the landed label when the pull completes', async () => {
     // invoke the rAF callback once with a timestamp far past the duration -> p=1 -> completes
     vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
       cb(1e9)
       return 1
     })
     const user = userEvent.setup()
-    const props = renderReel({ randomFn: () => 0 }) // targetIndex = floor(0*6) = 0
+    const props = renderReel({ randomFn: () => 0 }) // targetIndex = floor(0*6) = 0 -> 'A'
     await user.click(
       screen.getByRole('button', { name: 'Pull the TEST REEL reel' }),
     )
-    expect(props.onSpinEnd).toHaveBeenCalledWith(0)
+    expect(props.onSpinEnd).toHaveBeenCalledWith('A')
     expect(props.sound.ding).toHaveBeenCalledTimes(1)
+  })
+
+  it('reports a label still valid against the spin-start list even if labels shrink mid-spin', async () => {
+    // Capture the rAF callback instead of invoking it immediately, so we can
+    // swap `labels` to a shorter list (simulating a runtime config reload)
+    // before the spin completes.
+    let rafCallback = null
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
+      rafCallback = cb
+      return 1
+    })
+    const user = userEvent.setup()
+    const onSpinEnd = vi.fn()
+    const baseProps = {
+      title: 'TEST REEL',
+      windowBg: '#111',
+      hasResult: false,
+      sound: stubSound(),
+      onSpinEnd,
+      randomFn: () => 5 / 6, // targetIndex = floor((5/6)*6) = 5 -> 'F'
+    }
+    const { rerender } = render(
+      <AssignmentReel {...baseProps} labels={LABELS} />,
+    )
+    await user.click(
+      screen.getByRole('button', { name: 'Pull the TEST REEL reel' }),
+    )
+    expect(rafCallback).not.toBeNull()
+
+    // Config swap arrives mid-spin: the option list shrinks to 2 entries,
+    // which would put index 5 out of bounds.
+    rerender(<AssignmentReel {...baseProps} labels={['X', 'Y']} />)
+
+    // Complete the in-flight spin; it must still resolve against the
+    // 6-item list captured when the spin started, not the new 2-item list.
+    rafCallback(1e9)
+
+    expect(onSpinEnd).toHaveBeenCalledWith('F')
   })
 
   it('starts a pull from keyboard activation', async () => {

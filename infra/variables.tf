@@ -9,6 +9,12 @@ variable "domain_name" {
   type        = string
 }
 
+variable "alternate_domain_name" {
+  description = "Optional second public hostname that aliases to the same app, e.g. wwjt.example.com. Leave unset to serve only domain_name."
+  type        = string
+  default     = null
+}
+
 variable "hosted_zone_name" {
   description = "Route 53 hosted zone the domain lives in, e.g. example.com"
   type        = string

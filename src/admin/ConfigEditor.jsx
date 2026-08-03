@@ -70,15 +70,15 @@ export default function ConfigEditor({ idToken, onAuthExpired }) {
       />
       {!validation.ok && (
         <ul>
-          {validation.errors.map((error) => (
-            <li key={error}>{error}</li>
+          {validation.errors.map((error, index) => (
+            <li key={`${index}-${error}`}>{error}</li>
           ))}
         </ul>
       )}
       {status.kind === 'error' && (
         <ul>
-          {status.errors.map((error) => (
-            <li key={error}>{error}</li>
+          {status.errors.map((error, index) => (
+            <li key={`${index}-${error}`}>{error}</li>
           ))}
         </ul>
       )}
@@ -133,6 +133,7 @@ function ListEditor({ name, label, addLabel, items, onChange }) {
               type="button"
               aria-label={`Move ${name} entry ${i + 1} up`}
               onClick={() => move(i, -1)}
+              disabled={i === 0}
             >
               ↑
             </button>
@@ -140,6 +141,7 @@ function ListEditor({ name, label, addLabel, items, onChange }) {
               type="button"
               aria-label={`Move ${name} entry ${i + 1} down`}
               onClick={() => move(i, 1)}
+              disabled={i === items.length - 1}
             >
               ↓
             </button>

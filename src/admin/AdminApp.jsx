@@ -1,15 +1,16 @@
 import { AuthProvider, useAuth } from 'react-oidc-context'
 import ConfigEditor from './ConfigEditor.jsx'
+import { ADMIN_PATH } from '../adminPath.js'
 
 const oidcConfig = {
   authority: import.meta.env.VITE_COGNITO_AUTHORITY,
   client_id: import.meta.env.VITE_COGNITO_CLIENT_ID,
-  redirect_uri: `${window.location.origin}/admin`,
+  redirect_uri: `${window.location.origin}${ADMIN_PATH}`,
   scope: 'openid email',
   automaticSilentRenew: false,
   onSigninCallback: () => {
     // Strip ?code=&state= after the redirect back from the Hosted UI.
-    window.history.replaceState({}, '', '/admin')
+    window.history.replaceState({}, '', ADMIN_PATH)
   },
 }
 

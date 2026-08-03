@@ -71,7 +71,11 @@ export default function AssignmentReel({
         rafRef.current = null
         sound.ding()
         setSpinning(false)
-        onSpinEnd(targetIndex)
+        // Report the landed label, not the index: `labels` here is the
+        // array captured when this spin started, so the lookup is always
+        // in bounds even if the parent swaps in a shorter list (e.g. a
+        // runtime config reload) before this spin finishes.
+        onSpinEnd(labels[targetIndex])
       }
     }
     rafRef.current = requestAnimationFrame(frame)
