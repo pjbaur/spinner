@@ -89,12 +89,13 @@ If you use **IAM Identity Center** (recommended):
 1. **Permission sets → Create permission set → Custom permission set.**
 2. Under **Inline policy**, paste [`infra/provisioner-policy.json`](../../infra/provisioner-policy.json).
    (Skip `PowerUserAccess` — it denies the IAM writes this stack needs.) The
-   policy grew to cover the config-editor stack (Cognito, HTTP API, Lambda,
-   log groups, and the Lambda execution role) and later dropped an unscoped
-   `iam:PassRole` that nothing in the OIDC/deploy path used (the Lambda
-   execution role is already covered by the conditioned
-   `PassConfigWriterRoleToLambda` statement) — if your permission set already
-   has an older version, re-paste the current file before applying.
+   policy has changed since it was first written. It grew to cover the
+   config-editor stack (Cognito, HTTP API, Lambda, log groups, and the
+   Lambda execution role). It also later dropped an unscoped `iam:PassRole`
+   that nothing in the OIDC/deploy path used — the Lambda execution role is
+   already covered by the conditioned `PassConfigWriterRoleToLambda`
+   statement. If your permission set already has an older version of this
+   policy, re-paste the current file before applying.
 3. **Name** `spinner-infra-provisioner`; **Session duration** `4 hours`
    (CloudFront/ACM applies are slow — avoids a mid-apply credential expiry).
 4. **AWS accounts →** select the account **→ Assign users or groups →** pick
@@ -156,6 +157,7 @@ Create an `infra/` directory (kept separate from app code). All files below live
 infra/
 ├── providers.tf
 ├── variables.tf
+├── locals.tf
 ├── s3.tf
 ├── acm.tf
 ├── cloudfront.tf
@@ -164,6 +166,12 @@ infra/
 ├── outputs.tf
 └── terraform.tfvars      # your values (gitignore this)
 ```
+
+> This is the core hosting stack this walkthrough builds. The repo's
+> `infra/` also provisions an admin config editor (Cognito, an HTTP API, a
+> Lambda) and a cost budget — see "Also provisioned: the admin config
+> editor" below, and [`infra/README.md`](../../infra/README.md#files) for
+> the complete, current file list.
 
 Add to the repo's `.gitignore`:
 
@@ -218,6 +226,12 @@ variable "domain_name" {
   type        = string
 }
 
+variable "alternate_domain_name" {
+  description = "Optional second public hostname that aliases to the same app, e.g. wwjt.example.com. Leave unset to serve only domain_name."
+  type        = string
+  default     = null
+}
+
 variable "hosted_zone_name" {
   description = "Route 53 hosted zone the domain lives in, e.g. example.com"
   type        = string
@@ -240,6 +254,26 @@ variable "github_branch" {
 }
 ```
 
+> `infra/variables.tf` declares two more variables not shown above —
+> `cognito_domain_prefix` and `alert_email` — for the admin config editor
+> covered in "Also provisioned: the admin config editor" below.
+
+### `locals.tf`
+
+`alternate_domain_name` is optional, so every file that needs "the domain
+plus the alternate, if set" derives that list from `locals.tf` once instead
+of repeating the same conditional:
+
+```hcl
+locals {
+  alternate_domain_names = var.alternate_domain_name != null && var.alternate_domain_name != "" ? [var.alternate_domain_name] : []
+  all_domain_names       = concat([var.domain_name], local.alternate_domain_names)
+}
+```
+
+`acm.tf`, `cloudfront.tf`, and `route53.tf` below use these locals; so do
+`cognito.tf` and `api.tf` in the admin config editor.
+
 ### `terraform.tfvars` (fill in your values)
 
 ```hcl
@@ -249,6 +283,10 @@ hosted_zone_name = "example.com"
 bucket_name      = "spinner-app-prod-1234"   # must be globally unique
 github_repo      = "your-org/spinner"
 github_branch    = "main"
+
+# Optional: a second hostname (in the same hosted zone) that aliases to the
+# same app. Leave unset to serve only domain_name.
+# alternate_domain_name = "wwjt.example.com"
 ```
 
 ---
@@ -323,9 +361,10 @@ data "aws_route53_zone" "primary" {
 }
 
 resource "aws_acm_certificate" "site" {
-  provider          = aws.us_east_1          # MUST be us-east-1 for CloudFront
-  domain_name       = var.domain_name
-  validation_method = "DNS"
+  provider                  = aws.us_east_1 # MUST be us-east-1 for CloudFront
+  domain_name               = var.domain_name
+  subject_alternative_names = local.alternate_domain_names
+  validation_method         = "DNS"
 
   lifecycle {
     create_before_destroy = true
@@ -419,7 +458,7 @@ resource "aws_cloudfront_distribution" "site" {
   is_ipv6_enabled     = true
   comment             = "Spinner app"
   default_root_object = "index.html"
-  aliases             = [var.domain_name]
+  aliases             = local.all_domain_names
   price_class         = "PriceClass_100"  # NA + EU edges; cheapest. Widen if needed.
 
   origin {
@@ -489,6 +528,36 @@ resource "aws_route53_record" "a" {
 resource "aws_route53_record" "aaaa" {
   zone_id = data.aws_route53_zone.primary.zone_id
   name    = var.domain_name
+  type    = "AAAA"
+
+  alias {
+    name                   = aws_cloudfront_distribution.site.domain_name
+    zone_id                = aws_cloudfront_distribution.site.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+# Alias records for the optional alternate domain. Kept as separate
+# resources (rather than converting the two above to for_each) so the
+# primary domain's existing records keep their resource address and are
+# never destroyed/recreated when the alternate domain is added or removed.
+resource "aws_route53_record" "a_alternate" {
+  count   = length(local.alternate_domain_names)
+  zone_id = data.aws_route53_zone.primary.zone_id
+  name    = local.alternate_domain_names[count.index]
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.site.domain_name
+    zone_id                = aws_cloudfront_distribution.site.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_route53_record" "aaaa_alternate" {
+  count   = length(local.alternate_domain_names)
+  zone_id = data.aws_route53_zone.primary.zone_id
+  name    = local.alternate_domain_names[count.index]
   type    = "AAAA"
 
   alias {
@@ -578,25 +647,68 @@ resource "aws_iam_role_policy" "gha_deploy" {
 
 ```hcl
 output "bucket_name" {
-  value = aws_s3_bucket.site.id
+  description = "S3 bucket name for the website"
+  value       = aws_s3_bucket.site.id
 }
 
 output "cloudfront_distribution_id" {
-  value = aws_cloudfront_distribution.site.id
+  description = "CloudFront distribution ID for the website"
+  value       = aws_cloudfront_distribution.site.id
 }
 
 output "cloudfront_domain" {
-  value = aws_cloudfront_distribution.site.domain_name
+  description = "CloudFront domain name for the website"
+  value       = aws_cloudfront_distribution.site.domain_name
 }
 
 output "app_url" {
-  value = "https://${var.domain_name}"
+  description = "HTTPS URL of the application"
+  value       = "https://${var.domain_name}"
+}
+
+output "alternate_app_url" {
+  description = "HTTPS URL of the application on the alternate domain, if configured"
+  value       = var.alternate_domain_name != null && var.alternate_domain_name != "" ? "https://${var.alternate_domain_name}" : null
 }
 
 output "gha_deploy_role_arn" {
-  value = aws_iam_role.gha_deploy.arn
+  description = "ARN of the GitHub Actions deployment role"
+  value       = aws_iam_role.gha_deploy.arn
 }
 ```
+
+> `infra/outputs.tf` also exposes `config_api_endpoint`, `cognito_authority`,
+> `cognito_client_id`, and `cognito_user_pool_id` for the admin config
+> editor — see "Also provisioned: the admin config editor" below.
+
+---
+
+## Also provisioned: the admin config editor
+
+The walkthrough above builds the core hosting stack. This repo's `infra/`
+also provisions an admin-only UI at `/admin` for editing the wheel config
+without a manual deploy. It isn't walked through file-by-file here — see
+[`infra/README.md`](../../infra/README.md#files) for the full, current file
+list — but briefly:
+
+- **`cognito.tf`** — an admin-only Cognito user pool (no self-signup), a
+  public SPA app client (authorization code + PKCE, no secret), and a
+  hosted-UI domain, used to sign in at `/admin`.
+- **`lambda.tf`** — a Node.js Lambda (`config-writer`) that validates and
+  writes the wheel config JSON to S3, then invalidates the CloudFront path
+  for it.
+- **`api.tf`** — an HTTP API Gateway route (`PUT /config`) in front of that
+  Lambda, authorized by a Cognito JWT authorizer.
+- **`budgets.tf`** — a monthly cost budget (`$20` limit) with alerts at 25%
+  and 100% of that limit.
+
+Two things from the core stack change to support this:
+
+- `cloudfront.tf`'s response-headers policy extends its `connect-src` CSP
+  directive to allow the config API and Cognito endpoints from `/admin`.
+- `variables.tf` declares two more inputs this stack needs:
+  `cognito_domain_prefix` (the Cognito hosted-UI domain) and `alert_email`
+  (where budget alerts go).
 
 ---
 
