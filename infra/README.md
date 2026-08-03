@@ -27,6 +27,7 @@ or push to `main` to trigger `.github/workflows/deploy.yml`.
 | ---------------- | ------------------------------------------------------------------------------------- |
 | `providers.tf`   | AWS providers — default region + an aliased `us-east-1` for the ACM cert              |
 | `variables.tf`   | Input variables                                                                       |
+| `locals.tf`      | Derived domain lists (primary + optional alternate domain) shared across files        |
 | `s3.tf`          | Private bucket, public-access block, versioning, encryption, CloudFront-scoped policy |
 | `acm.tf`         | DNS-validated TLS certificate (in us-east-1) via Route 53                             |
 | `cloudfront.tf`  | OAC, security-headers/CSP policy, distribution                                        |

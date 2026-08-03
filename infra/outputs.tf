@@ -18,6 +18,11 @@ output "app_url" {
   value       = "https://${var.domain_name}"
 }
 
+output "alternate_app_url" {
+  description = "HTTPS URL of the application on the alternate domain, if configured"
+  value       = var.alternate_domain_name != null && var.alternate_domain_name != "" ? "https://${var.alternate_domain_name}" : null
+}
+
 output "gha_deploy_role_arn" {
   description = "ARN of the GitHub Actions deployment role"
   value       = aws_iam_role.gha_deploy.arn

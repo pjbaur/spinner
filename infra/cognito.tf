@@ -38,14 +38,16 @@ resource "aws_cognito_user_pool_client" "admin" {
   allowed_oauth_scopes                 = ["openid", "email"]
   supported_identity_providers         = ["COGNITO"]
 
-  callback_urls = [
-    "https://${var.domain_name}/admin",
-    "http://localhost:5173/admin",
-  ]
-  logout_urls = [
-    "https://${var.domain_name}/admin",
-    "http://localhost:5173/admin",
-  ]
+  callback_urls = concat(
+    ["https://${var.domain_name}/admin"],
+    [for d in local.alternate_domain_names : "https://${d}/admin"],
+    ["http://localhost:5173/admin"],
+  )
+  logout_urls = concat(
+    ["https://${var.domain_name}/admin"],
+    [for d in local.alternate_domain_names : "https://${d}/admin"],
+    ["http://localhost:5173/admin"],
+  )
 }
 
 resource "aws_cognito_user_pool_domain" "admin" {
