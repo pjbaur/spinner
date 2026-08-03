@@ -26,8 +26,7 @@
         "iam:ListAttachedRolePolicies",
         "iam:GetRolePolicy",
         "iam:PutRolePolicy",
-        "iam:DeleteRolePolicy",
-        "iam:PassRole"
+        "iam:DeleteRolePolicy"
       ],
       "Resource": "*"
     },
