@@ -70,15 +70,15 @@ export default function ConfigEditor({ idToken, onAuthExpired }) {
       />
       {!validation.ok && (
         <ul>
-          {validation.errors.map((error) => (
-            <li key={error}>{error}</li>
+          {validation.errors.map((error, index) => (
+            <li key={`${index}-${error}`}>{error}</li>
           ))}
         </ul>
       )}
       {status.kind === 'error' && (
         <ul>
-          {status.errors.map((error) => (
-            <li key={error}>{error}</li>
+          {status.errors.map((error, index) => (
+            <li key={`${index}-${error}`}>{error}</li>
           ))}
         </ul>
       )}
