@@ -1,21 +1,26 @@
 output "bucket_name" {
-  value = aws_s3_bucket.site.id
+  description = "S3 bucket name for the website"
+  value       = aws_s3_bucket.site.id
 }
 
 output "cloudfront_distribution_id" {
-  value = aws_cloudfront_distribution.site.id
+  description = "CloudFront distribution ID for the website"
+  value       = aws_cloudfront_distribution.site.id
 }
 
 output "cloudfront_domain" {
-  value = aws_cloudfront_distribution.site.domain_name
+  description = "CloudFront domain name for the website"
+  value       = aws_cloudfront_distribution.site.domain_name
 }
 
 output "app_url" {
-  value = "https://${var.domain_name}"
+  description = "HTTPS URL of the application"
+  value       = "https://${var.domain_name}"
 }
 
 output "gha_deploy_role_arn" {
-  value = aws_iam_role.gha_deploy.arn
+  description = "ARN of the GitHub Actions deployment role"
+  value       = aws_iam_role.gha_deploy.arn
 }
 
 output "config_api_endpoint" {
