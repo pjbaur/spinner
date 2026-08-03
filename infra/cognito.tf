@@ -32,6 +32,7 @@ resource "aws_cognito_user_pool_client" "admin" {
 
   # Public SPA client: authorization code + PKCE, no secret.
   generate_secret                      = false
+  prevent_user_existence_errors        = "ENABLED"
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_flows                  = ["code"]
   allowed_oauth_scopes                 = ["openid", "email"]
