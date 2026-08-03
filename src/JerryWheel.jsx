@@ -29,10 +29,10 @@ export default function JerryWheel({ teacherName = 'Jerry', soundOn = true }) {
     if (bothDone) sound.stamp()
   }, [bothDone, sound])
 
-  function handleSpinEnd(axis, index) {
+  function handleSpinEnd(axis, label) {
     const candidateFileNo = genFileNumber()
     setResult((r) => {
-      const next = { ...r, [axis]: index }
+      const next = { ...r, [axis]: label }
       if (next.env != null && next.topic != null && next.fileNo == null) {
         next.fileNo = candidateFileNo
       }
@@ -76,7 +76,7 @@ export default function JerryWheel({ teacherName = 'Jerry', soundOn = true }) {
             windowBg={ENV_WINDOW_BG}
             hasResult={result.env != null}
             sound={sound}
-            onSpinEnd={(index) => handleSpinEnd('env', index)}
+            onSpinEnd={(label) => handleSpinEnd('env', label)}
           />
           <AssignmentReel
             title="TEACHING SUBJECT"
@@ -84,7 +84,7 @@ export default function JerryWheel({ teacherName = 'Jerry', soundOn = true }) {
             windowBg={TOPIC_WINDOW_BG}
             hasResult={result.topic != null}
             sound={sound}
-            onSpinEnd={(index) => handleSpinEnd('topic', index)}
+            onSpinEnd={(label) => handleSpinEnd('topic', label)}
           />
         </div>
 
@@ -97,8 +97,8 @@ export default function JerryWheel({ teacherName = 'Jerry', soundOn = true }) {
           {bothDone && (
             <AssignmentMemo
               teacherName={teacherName}
-              subject={subjects[result.topic]}
-              environment={environments[result.env]}
+              subject={result.topic}
+              environment={result.env}
               effectiveDate={effectiveDate}
               fileNo={result.fileNo}
               onFileNewRequest={handleReset}
