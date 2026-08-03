@@ -41,4 +41,6 @@ export async function saveConfig(config, idToken) {
     const body = await res.json().catch(() => ({}))
     throw new ConfigSaveError(res.status, body.errors ?? ['save failed'])
   }
+  const body = await res.json().catch(() => ({}))
+  return body.warnings
 }

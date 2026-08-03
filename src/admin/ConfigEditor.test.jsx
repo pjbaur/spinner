@@ -91,6 +91,23 @@ describe('ConfigEditor', () => {
     expect(await screen.findByText('version must be 1')).toBeInTheDocument()
   })
 
+  it('shows a warning, not the error list, when invalidation fails after a successful save', async () => {
+    const user = userEvent.setup()
+    saveConfig.mockResolvedValue([
+      'cache invalidation failed; changes may take up to 5 minutes to appear',
+    ])
+    await renderLoaded()
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    expect(
+      await screen.findByText(
+        'Saved — may take up to 5 minutes to appear (cache refresh failed; Save again to retry).',
+      ),
+    ).toBeInTheDocument()
+    // Errors render as <ul>; the list-editor sections use <ol>, so this
+    // specifically confirms no error list is present (not just no <ol>s).
+    expect(document.querySelectorAll('ul')).toHaveLength(0)
+  })
+
   it('restarts sign-in when the session has expired', async () => {
     const user = userEvent.setup()
     const onAuthExpired = vi.fn()

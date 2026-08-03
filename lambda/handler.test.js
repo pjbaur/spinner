@@ -64,14 +64,18 @@ describe('config writer handler', () => {
     expect(deps.invalidate).not.toHaveBeenCalled()
   })
 
-  it('returns a distinct 500 message when invalidation fails after a successful write', async () => {
+  it('returns 200 with a warning when invalidation fails after a successful write', async () => {
     const deps = makeDeps()
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
     deps.invalidate.mockRejectedValue(new Error('cloudfront down'))
     const res = await createHandler(deps)(event(VALID_BODY))
-    expect(res.statusCode).toBe(500)
-    expect(JSON.parse(res.body).errors).toEqual([
-      'config saved but cache invalidation failed',
-    ])
+    expect(res.statusCode).toBe(200)
+    expect(JSON.parse(res.body)).toEqual({
+      ok: true,
+      warnings: [
+        'cache invalidation failed; changes may take up to 5 minutes to appear',
+      ],
+    })
     expect(deps.putObject).toHaveBeenCalledWith(
       'config/jerry.json',
       JSON.stringify({
@@ -80,5 +84,10 @@ describe('config writer handler', () => {
         subjects: ['Math', 'Art'],
       }),
     )
+    expect(consoleError).toHaveBeenCalledWith(
+      'cache invalidation failed',
+      expect.any(Error),
+    )
+    consoleError.mockRestore()
   })
 })

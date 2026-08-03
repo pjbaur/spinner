@@ -34,8 +34,12 @@ export default function ConfigEditor({ idToken, onAuthExpired }) {
   async function handleSave() {
     setStatus({ kind: 'saving' })
     try {
-      await saveConfig(candidate, idToken)
-      setStatus({ kind: 'saved' })
+      const warnings = await saveConfig(candidate, idToken)
+      if (warnings && warnings.length > 0) {
+        setStatus({ kind: 'saved-with-warning', warnings })
+      } else {
+        setStatus({ kind: 'saved' })
+      }
     } catch (err) {
       if (
         err instanceof ConfigSaveError &&
@@ -83,6 +87,12 @@ export default function ConfigEditor({ idToken, onAuthExpired }) {
         </ul>
       )}
       {status.kind === 'saved' && <p>Saved.</p>}
+      {status.kind === 'saved-with-warning' && (
+        <p style={{ color: '#b45309' }}>
+          Saved — may take up to 5 minutes to appear (cache refresh failed; Save
+          again to retry).
+        </p>
+      )}
       <button
         type="button"
         onClick={handleSave}
