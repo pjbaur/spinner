@@ -1,11 +1,12 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
+import { ADMIN_PATH } from './adminPath.js'
 
 // /admin is code-split so public visitors never download the OIDC stack.
 // CloudFront's SPA fallback (403/404 -> index.html) makes the path load.
 const AdminApp = React.lazy(() => import('./admin/AdminApp.jsx'))
-const isAdmin = window.location.pathname.replace(/\/+$/, '') === '/admin'
+const isAdmin = window.location.pathname.replace(/\/+$/, '') === ADMIN_PATH
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
