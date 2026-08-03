@@ -30,9 +30,13 @@ or push to `main` to trigger `.github/workflows/deploy.yml`.
 | `s3.tf`          | Private bucket, public-access block, versioning, encryption, CloudFront-scoped policy |
 | `acm.tf`         | DNS-validated TLS certificate (in us-east-1) via Route 53                             |
 | `cloudfront.tf`  | OAC, security-headers/CSP policy, distribution                                        |
-| `route53.tf`     | Alias A/AAAA records → CloudFront                                                     |
+| `route53.tf`     | Alias A/AAAA records to CloudFront                                                    |
 | `github_oidc.tf` | GitHub OIDC provider + deploy role (no stored keys)                                   |
 | `outputs.tf`     | Values consumed by the deploy step / CI                                               |
+| `cognito.tf`     | Admin user pool for the config editor; admin-only user creation                       |
+| `lambda.tf`      | Config-writer Lambda function + IAM role with S3 and CloudFront permissions           |
+| `api.tf`         | API Gateway HTTP API with Cognito JWT authorization for the PUT /config route         |
+| `budgets.tf`     | Monthly cost budget with alerts at 25% and 100% thresholds                            |
 
 Not part of the OpenTofu config:
 
