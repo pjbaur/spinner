@@ -63,4 +63,22 @@ describe('config writer handler', () => {
     expect(JSON.parse(res.body).errors).toEqual(['failed to store config'])
     expect(deps.invalidate).not.toHaveBeenCalled()
   })
+
+  it('returns a distinct 500 message when invalidation fails after a successful write', async () => {
+    const deps = makeDeps()
+    deps.invalidate.mockRejectedValue(new Error('cloudfront down'))
+    const res = await createHandler(deps)(event(VALID_BODY))
+    expect(res.statusCode).toBe(500)
+    expect(JSON.parse(res.body).errors).toEqual([
+      'config saved but cache invalidation failed',
+    ])
+    expect(deps.putObject).toHaveBeenCalledWith(
+      'config/jerry.json',
+      JSON.stringify({
+        version: 1,
+        environments: ['Gym', 'Pool'],
+        subjects: ['Math', 'Art'],
+      }),
+    )
+  })
 })

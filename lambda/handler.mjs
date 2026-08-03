@@ -15,10 +15,17 @@ export function createHandler({ putObject, invalidate }) {
     if (!result.ok) return response(400, { errors: result.errors })
     try {
       await putObject(CONFIG_KEY, JSON.stringify(result.config))
-      await invalidate(`config-${event.requestContext?.requestId ?? 'manual'}`)
     } catch (err) {
       console.error('config write failed', err)
       return response(500, { errors: ['failed to store config'] })
+    }
+    try {
+      await invalidate(`config-${event.requestContext?.requestId ?? 'manual'}`)
+    } catch (err) {
+      console.error('cache invalidation failed', err)
+      return response(500, {
+        errors: ['config saved but cache invalidation failed'],
+      })
     }
     return response(200, { ok: true })
   }
