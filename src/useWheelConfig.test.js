@@ -30,6 +30,8 @@ describe('useWheelConfig', () => {
     await waitFor(() =>
       expect(result.current.environments).toEqual(['Gym', 'Pool']),
     )
+    expect(result.current.subjects).toEqual(['Math', 'Art'])
+    expect(result.current.version).toEqual(1)
     expect(fetch).toHaveBeenCalledWith('/config/jerry.json')
   })
 
