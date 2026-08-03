@@ -15,8 +15,9 @@ behavior; they are hardening, robustness, and polish.
   and go live only via `tofu -chdir=infra plan -out=tfplan` (review: expect
   updates in place only, no destroys unless stated) then `apply` — requires
   `aws sso login` first. tfvars/state are local-only in `infra/`.
-- Prod: https://teachingassignment.kc9o.com, bucket `spinner-app-prod-kc9o`,
-  region us-east-2. Deploy runs from GitHub Actions on push to main.
+- Prod: the live site and its bucket, region us-east-2. Concrete values live
+  in gitignored `infra/terraform.tfvars` (see `infra/terraform.tfvars.example`
+  for the shape). Deploy runs from GitHub Actions on push to main.
 - Work on a feature branch, PR to main (repo practice).
 
 ## A. Security tightening (do first)

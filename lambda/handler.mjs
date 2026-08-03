@@ -23,8 +23,11 @@ export function createHandler({ putObject, invalidate }) {
       await invalidate(`config-${event.requestContext?.requestId ?? 'manual'}`)
     } catch (err) {
       console.error('cache invalidation failed', err)
-      return response(500, {
-        errors: ['config saved but cache invalidation failed'],
+      return response(200, {
+        ok: true,
+        warnings: [
+          'cache invalidation failed; changes may take up to 5 minutes to appear',
+        ],
       })
     }
     return response(200, { ok: true })

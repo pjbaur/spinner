@@ -38,7 +38,7 @@ describe('saveConfig', () => {
       'fetch',
       vi.fn().mockResolvedValue({ ok: true, json: async () => ({ ok: true }) }),
     )
-    await saveConfig(VALID, 'id-token-123')
+    await expect(saveConfig(VALID, 'id-token-123')).resolves.toBeUndefined()
     expect(fetch).toHaveBeenCalledWith('https://api.example.com/config', {
       method: 'PUT',
       headers: {
@@ -47,6 +47,24 @@ describe('saveConfig', () => {
       },
       body: JSON.stringify(VALID),
     })
+  })
+
+  it('resolves to the warnings array when the server reports a partial success', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          ok: true,
+          warnings: [
+            'cache invalidation failed; changes may take up to 5 minutes to appear',
+          ],
+        }),
+      }),
+    )
+    await expect(saveConfig(VALID, 'id-token-123')).resolves.toEqual([
+      'cache invalidation failed; changes may take up to 5 minutes to appear',
+    ])
   })
 
   it('throws ConfigSaveError with server errors on 400', async () => {

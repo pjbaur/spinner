@@ -1,5 +1,8 @@
 // JerryWheel now fetches /config/jerry.json on mount; fail the fetch so
 // tests exercise the built-in default lists.
+// NOTE: This stub is applied once at module load. If restoreMocks or
+// unstubGlobals is added to the vitest config, this will silently stop
+// protecting tests.
 vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
 
 import { describe, it, expect, vi } from 'vitest'
